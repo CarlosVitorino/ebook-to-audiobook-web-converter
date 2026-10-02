@@ -10,12 +10,15 @@ from .db import DATA, db
 BASE_URL = os.environ.get("BASE_URL", "http://localhost:8000").rstrip("/")
 KEEP_HOURS = float(os.environ.get("KEEP_HOURS", "24"))
 MAX_MB = int(os.environ.get("MAX_UPLOAD_MB", "100"))
+# How many times faster than real time the server narrates, for the "ready in about" estimate.
+NARRATION_SPEED = float(os.environ.get("NARRATION_SPEED", "5"))
 COOKIE = "nid"  # anonymous owner of drafts, from before sign-in
 
+# Prices decided by Carlos, 2026-10-02. "books" is how many credits the pack adds.
 PACKS = [
-    {"id": "one", "name": "1 book", "price": "€9", "note": "up to ~10 hours of audio"},
-    {"id": "four", "name": "4 books", "price": "€29", "note": "€7.25 per book"},
-    {"id": "twelve", "name": "12 books", "price": "€79", "note": "€6.58 per book, for authors"},
+    {"id": "one", "name": "1 book", "books": 1, "price": "€2.99", "per_book": "€2.99"},
+    {"id": "five", "name": "5 books", "books": 5, "price": "€9.95", "per_book": "€1.99"},
+    {"id": "fifteen", "name": "15 books", "books": 15, "price": "€24.95", "per_book": "€1.66"},
 ]
 
 
@@ -54,7 +57,7 @@ def balance(user_id: int) -> int:
 def page(request: Request, name: str, ctx: dict, status_code: int = 200, owner: str | None = None):
     user = current_user(request)
     resp = templates.TemplateResponse(request, name, {
-        "packs": PACKS, "max_mb": MAX_MB, "keep": KEEP_HOURS,
+        "packs": PACKS, "max_mb": MAX_MB, "keep": KEEP_HOURS, "speed": NARRATION_SPEED,
         "user": user, "balance": balance(user["id"]) if user else 0, **ctx,
     }, status_code=status_code)
     if owner:

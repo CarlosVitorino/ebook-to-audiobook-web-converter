@@ -38,7 +38,7 @@ Same style as now. Content from top to bottom:
 
 1. One line: **"Turn your ebook into an audiobook."** One sub-line: "Upload an EPUB or PDF you own. Get one M4B file with chapters and captions."
 2. The file picker/drop zone and a **Next** button. Nothing else above the fold.
-3. **"Your first book is free. After that: 1 book €9 · 4 books €29 · 12 books €79. No subscription."** One line of three plain boxes, like now.
+3. **"Your first book is free. After that, buy a pack. No subscription."** with a plain price table: 1 book €2.99 · 5 books €9.95 (€1.99 each) · 15 books €24.95 (€1.66 each).
 4. A 30-second audio sample of the voice (a static file, made once). **⚑ FLAG:** I added this. It costs nothing, and people want to hear the voice before uploading.
 5. Three short FAQ lines: which files work (DRM-free EPUB/PDF, English), how long a conversion takes, and that files are deleted after N days.
 6. Footer: Terms · Privacy · Refunds · contact email.
@@ -100,7 +100,7 @@ Why Creem fits: as merchant of record, Creem handles EU VAT and sales tax. It se
 - The webhook handler is idempotent on Creem's event/order id, so a retried webhook never doubles credits.
 - **Credits ledger** table (+N on purchase, −1 on conversion start, +1 back if a conversion fails). The balance is the sum of the ledger.
 - Test mode first, live keys at launch.
-- **⚑ FLAG, before Creem goes live:** Creem reviews the store before enabling payouts. It wants a live site with Terms, Privacy and Refund pages and a clear product description, so those pages are in phase D. Also check Creem's current fee: about 4% + a fixed fee per order, which on a €9 pack is roughly €0.75.
+- **⚑ FLAG, before Creem goes live:** Creem reviews the store before enabling payouts. It wants a live site with Terms, Privacy and Refund pages and a clear product description, so those pages are in phase D. Also check Creem's current fee: about 4% + a fixed fee per order, which on the €2.99 pack is roughly €0.50. Carlos's net per book after fees and VAT: €1.96 / €1.47 / €1.26.
 
 ## 6. Other things I think v1 needs (all ⚑ FLAG)
 
@@ -177,7 +177,7 @@ The brief's list stands, as updated: no voice cloning, no mobile app, no DRM han
 3. Payments go through **Creem** (creem.io).
 4. Section checklist + plain textarea, not the Venture Lab Crepe editor.
 5. 1 credit = up to ~10 h of audio, longer books use 2. The free book has the same cap. All of §6 is accepted.
-6. Prices stay at €9 / €29 / €79.
+6. Prices: **€2.99 for 1 book, €9.95 for 5, €24.95 for 15** (revised by Carlos, 2026-10-02; replaces €9/€29/€79).
 7. Name: **narrator.guru**.
 8. **Added: a voice selector in step 2** (§3), with about 6 English voices and pre-rendered samples.
 9. Hosting and the email provider: Carlos sets them up later (phase D / phase B). Until then, emails go to the console log in development.
@@ -202,3 +202,9 @@ The brief's list stands, as updated: no voice cloning, no mobile app, no DRM han
 - Mail: plain SMTP (`SMTP_HOST` etc. in `.env.example`), so any provider works. Without it, mail goes to the log and `data/outbox.log`.
 - Still open (phase D): `/stats` is public; job pages are reachable by anyone with the link (12 random hex characters), so emailed links work on any device.
 - Tests run (scratch scripts, not committed): magic-link flow, draft claim, double-submit, second-book gate, link reuse, open redirect, rate limit, PoC-email rule, refund on failure, ready/failure emails; Google flow with Google's endpoints mocked.
+
+## 13. Revision after phase B (2026-10-02)
+
+- New prices (above). Pack ids are `one`, `five`, `fifteen`; each pack carries `books`, the credits it adds, ready for phase C.
+- Processing time: Carlos's VPS narrates about 4–5× faster than real time. The landing page says "about 40 minutes for The Great Gatsby's 4 hours". The confirm page estimates with `NARRATION_SPEED` (default 5). The job page's countdown uses measured progress, so it's right on any machine.
+- Layout reworked: still dark, but plain and a bit old-fashioned. Serif headings, thin rules, square buttons (one solid button per page, outlined for the rest), prices in a table instead of cards.

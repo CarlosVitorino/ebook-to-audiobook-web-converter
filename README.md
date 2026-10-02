@@ -41,6 +41,6 @@ What you get:
 - With no books left, confirming shows the pricing page. A failed conversion gives its book back, and an email goes out when a book is ready or fails. "Buy" records the click and says packs are coming soon. No money moves.
 - `/stats`: uploads, rejections, finished books, second-book attempts, buy clicks per pack, and measured speed. This is the thesis measurement.
 
-Accounts, Google sign-in and mail are configured in `.env` (copy `.env.example`). Other settings (environment variables): `KEEP_HOURS` (default 24), `DRAFT_HOURS` (2, unconfirmed uploads), `MAX_UPLOAD_MB` (100), `MAX_CHARS` (1,500,000), `CHARS_PER_CREDIT` (600,000, one book), `CHARS_PER_SECOND` (14.5, for the length estimate), `VOICE` (default voice, `af_heart`), `DATA_DIR`.
+Accounts, Google sign-in and mail are configured in `.env` (copy `.env.example`). Other settings (environment variables): `KEEP_HOURS` (default 24), `DRAFT_HOURS` (2, unconfirmed uploads), `MAX_UPLOAD_MB` (100), `MAX_CHARS` (1,500,000), `CHARS_PER_CREDIT` (600,000, one book), `CHARS_PER_SECOND` (14.5, for the length estimate), `NARRATION_SPEED` (5, times faster than real time, for the "ready in about" estimate), `VOICE` (default voice, `af_heart`), `DATA_DIR`.
 
 Speed: on a 4-core CPU, narration runs about 2.6× faster than real time, so a 10-hour novel takes roughly 4 hours.

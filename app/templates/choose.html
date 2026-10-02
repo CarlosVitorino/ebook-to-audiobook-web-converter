@@ -13,9 +13,9 @@
     <li class="{{ '' if s.include else 'off' }}">
       <div class="row">
         <input type="checkbox" id="inc{{ loop.index0 }}" name="include_{{ loop.index0 }}" {{ 'checked' if s.include }}>
-        <label class="name" for="inc{{ loop.index0 }}" style="margin:0;font-weight:400">
+        <label class="name" for="inc{{ loop.index0 }}">
           <span class="t">{{ s.title or "Untitled section" }}</span>
-          <span class="preview">{{ s.text[:120] }}</span>
+          {% set body = s.text[s.title | length:] if s.title and s.text.startswith(s.title) else s.text %}<span class="preview">{{ body.strip()[:120] }}</span>
         </label>
         <span class="words">{{ "{:,}".format(s.text.split() | length) }} words</span>
       </div>
@@ -28,17 +28,17 @@
   </ul>
 
   <h2>Voice</h2>
-  <div class="voices">
+  <ul class="voices">
   {% for v in voices %}
-    <label>
-      <input type="radio" name="voice" value="{{ v.id }}" {{ 'checked' if v.id == job.voice }}>
-      <span>{{ v.name }}<br><span class="small">{{ v.accent }} {{ v.gender }}</span></span>
-      <audio controls preload="none" src="/static/voices/{{ v.id }}.m4a"></audio>
-    </label>
+    <li class="row">
+      <input type="radio" id="v{{ loop.index }}" name="voice" value="{{ v.id }}" {{ 'checked' if v.id == job.voice }}>
+      <label class="name" for="v{{ loop.index }}"><span class="t">{{ v.name }}</span> <span class="small">· {{ v.accent }} {{ v.gender }}</span></label>
+      <audio controls preload="none" src="/static/voices/{{ v.id }}.m4a" aria-label="Sample of {{ v.name }}"></audio>
+    </li>
   {% endfor %}
-  </div>
+  </ul>
 
-  <button type="submit">Next</button>
+  <div class="actions"><button type="submit">Next</button></div>
 </form>
 
 <script>

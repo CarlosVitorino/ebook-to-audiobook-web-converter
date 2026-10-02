@@ -4,13 +4,14 @@
 <h1>{{ job.title }}</h1>
 <p class="lede">{{ count }} section{{ 's' if count != 1 }}, about {{ seconds | duration }} of audio, read by {{ voice.name }} ({{ voice.accent }} {{ voice.gender }}). <a href="/drafts/{{ job.id }}">Change</a></p>
 
-<form class="card" method="post">
+<form class="box" method="post">
   {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
-  <p style="margin-top:0">This uses <strong>{{ credits }} book{{ 's' if credits > 1 }}</strong>{% if credits > 1 %}, because it's longer than about 10 hours{% endif %}. You have {{ balance }}.</p>
+  <p style="margin-top:0">This uses <strong>{{ credits }} book{{ 's' if credits > 1 }}</strong>{% if credits > 1 %}, because it's longer than about 10 hours{% endif %}. You have {{ balance }}.
+  It should be ready in about {{ (seconds / speed) | duration }}.</p>
   <label class="check"><input type="checkbox" name="owns" value="true" required>
     <span>I own this book, it is DRM-free, and the audiobook is for my personal use only.</span></label>
 
-  <button type="submit">Convert my book</button>
+  <div class="actions"><button type="submit">Convert my book</button></div>
   <p class="small">We'll email {{ user.email }} when it's ready.</p>
 </form>
 {% endblock %}

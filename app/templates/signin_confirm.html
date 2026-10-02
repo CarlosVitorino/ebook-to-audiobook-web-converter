@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% block body %}
 <h1>Sign in</h1>
-<form class="card" method="post" action="/signin/email/{{ token }}">
+<form class="box" method="post" action="/signin/email/{{ token }}">
   <p style="margin-top:0">Signing in as <strong>{{ email }}</strong>.</p>
-  <button type="submit">Sign in</button>
+  <div class="actions"><button type="submit">Sign in</button></div>
 </form>
 {% endblock %}

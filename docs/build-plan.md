@@ -60,7 +60,7 @@ Close alternative: wrap abogen's own `abogen-web` Flask UI. Faster on day one, b
 - **Stop condition** (confirmed by Carlos): stop if we can't stay on the right side of copyright, or if nobody pays for book two.
 - **kokoro-onnx instead of abogen-cli** (2026-10-02). It's the same Kokoro-82M model and voices (Apache-2.0), exported to ONNX by the MIT-licensed kokoro-onnx project. Why: abogen pulls about 6 GB of PyTorch/CUDA that a CPU-only box doesn't need, and it fetches the model from Hugging Face, which was unreachable from the build sandbox. kokoro-onnx is a ~350 MB download from GitHub and runs 2.6x realtime on 4 CPU cores. The cost is ~250 lines of our own pipeline (`app/extract.py`, `app/narrate.py`): EPUB spine and PDF TOC chapters, sentence-level synthesis (which gives exact caption timings), and ffmpeg muxing to an M4B with chapters and an embedded mov_text caption track, plus a sidecar SRT.
 - **Voice:** `af_heart`, a single fixed voice.
-- **Packs on the pricing page:** €9 for 1 book, €29 for 4, €79 for 12, taken from the business notes.
+- **Packs on the pricing page:** €9 for 1 book, €29 for 4, €79 for 12, taken from the business notes. Superseded 2026-10-02: €2.99 / €9.95 for 5 / €24.95 for 15 (see `docs/v1-plan.md`).
 
 - **v1 scope** (Carlos, 2026-10-02): name narrator.guru; section picker + text editing; small voice picker; Google + magic-link accounts holding credits; Creem payments; €9/€29/€79. Details and phases in `docs/v1-plan.md`.
 
