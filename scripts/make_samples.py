@@ -33,6 +33,15 @@ FABLES = {
     ),
 }
 
+COPYRIGHT = (
+    "Copyright © 2026 narrator.guru sample books. All rights reserved.\n\n"
+    "The fables are in the public domain. ISBN 000-0-00-000000-0."
+)
+ABOUT = (
+    "Aesop was a storyteller in ancient Greece. Very little is known about his life. "
+    "The fables collected under his name were passed down and retold for centuries."
+)
+
 
 def epub(path, drm=False):
     with zipfile.ZipFile(path, "w") as z:
@@ -43,12 +52,20 @@ def epub(path, drm=False):
         if drm:
             z.writestr("META-INF/encryption.xml", """<encryption xmlns="urn:oasis:names:tc:opendocument:xmlns:container" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
 <enc:EncryptedData><enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes128-cbc"/></enc:EncryptedData></encryption>""")
-        items, spine = [], []
-        for i, (title, text) in enumerate(FABLES.items(), 1):
+        items, spine, nav = [], [], []
+        # Front and back matter around the fables, so the section picker has something to untick.
+        parts = [("", COPYRIGHT), ("Contents", "\n\n".join(FABLES))] + list(FABLES.items()) + [("About the Author", ABOUT)]
+        for i, (title, text) in enumerate(parts, 1):
             paras = "".join(f"<p>{p}</p>" for p in text.split("\n\n"))
-            z.writestr(f"OEBPS/ch{i}.xhtml", f"<html xmlns='http://www.w3.org/1999/xhtml'><body><h1>{title}</h1>{paras}</body></html>")
+            heading = f"<h1>{title}</h1>" if title else ""
+            z.writestr(f"OEBPS/ch{i}.xhtml", f"<html xmlns='http://www.w3.org/1999/xhtml'><body>{heading}{paras}</body></html>")
             items.append(f'<item id="ch{i}" href="ch{i}.xhtml" media-type="application/xhtml+xml"/>')
             spine.append(f'<itemref idref="ch{i}"/>')
+            if title:
+                nav.append(f'<li><a href="ch{i}.xhtml">{title}</a></li>')
+        z.writestr("OEBPS/nav.xhtml", "<html xmlns='http://www.w3.org/1999/xhtml' xmlns:epub='http://www.idpf.org/2007/ops'>"
+                   f"<body><nav epub:type='toc'><ol>{''.join(nav)}</ol></nav></body></html>")
+        items.append('<item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>')
         z.writestr("OEBPS/content.opf", f"""<?xml version="1.0"?>
 <package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="id">
 <metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>Three Fables of Aesop</dc:title><dc:identifier id="id">aesop-sample</dc:identifier><dc:language>en</dc:language></metadata>
@@ -58,6 +75,7 @@ def epub(path, drm=False):
 def pdf(path):
     doc = pymupdf.open()
     toc = []
+    doc.new_page().insert_textbox(pymupdf.Rect(60, 60, 540, 780), "Three Fables of Aesop\n\n" + COPYRIGHT, fontsize=12)
     for title, text in FABLES.items():
         page = doc.new_page()
         page.insert_textbox(pymupdf.Rect(60, 60, 540, 780), title + "\n\n" + text, fontsize=12)

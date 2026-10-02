@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block body %}
+<p class="steps">1 Upload · <b>2 Choose what to narrate</b> · 3 Confirm</p>
+<h1>{{ job.title }}</h1>
+<p class="lede">We unticked the parts most people skip, like the copyright page, contents and acknowledgements. Tick or untick anything. Use "Edit text" to cut a paragraph.</p>
+
+<form method="post" id="choose">
+  {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+  <div class="total" aria-live="polite"><span id="total">{{ seconds | duration }} of audio · {{ credits }} book{{ 's' if credits > 1 }}</span></div>
+
+  <ul class="sections">
+  {% for s in sections %}
+    <li class="{{ '' if s.include else 'off' }}">
+      <div class="row">
+        <input type="checkbox" id="inc{{ loop.index0 }}" name="include_{{ loop.index0 }}" {{ 'checked' if s.include }}>
+        <label class="name" for="inc{{ loop.index0 }}" style="margin:0;font-weight:400">
+          <span class="t">{{ s.title or "Untitled section" }}</span>
+          <span class="preview">{{ s.text[:120] }}</span>
+        </label>
+        <span class="words">{{ "{:,}".format(s.text.split() | length) }} words</span>
+      </div>
+      <details>
+        <summary>Edit text</summary>
+        <textarea name="text_{{ loop.index0 }}" data-chars="{{ s.text | length }}" disabled aria-label="Text of {{ s.title or 'this section' }}">{{ s.text }}</textarea>
+      </details>
+    </li>
+  {% endfor %}
+  </ul>
+
+  <h2>Voice</h2>
+  <div class="voices">
+  {% for v in voices %}
+    <label>
+      <input type="radio" name="voice" value="{{ v.id }}" {{ 'checked' if v.id == job.voice }}>
+      <span>{{ v.name }}<br><span class="small">{{ v.accent }} {{ v.gender }}</span></span>
+      <audio controls preload="none" src="/static/voices/{{ v.id }}.m4a"></audio>
+    </label>
+  {% endfor %}
+  </div>
+
+  <button type="submit">Next</button>
+</form>
+
+<script>
+(() => {
+  const cps = {{ cps }}, perCredit = {{ per_credit }};
+  const form = document.getElementById("choose"), total = document.getElementById("total");
+  const fmt = s => s >= 3600 ? `${Math.floor(s / 3600)} h ${Math.floor(s % 3600 / 60)} min` : `${Math.max(1, Math.round(s / 60))} min`;
+  function update() {
+    let chars = 0;
+    for (const li of form.querySelectorAll(".sections li")) {
+      const box = li.querySelector("input[type=checkbox]"), ta = li.querySelector("textarea");
+      li.classList.toggle("off", !box.checked);
+      if (box.checked) chars += ta.disabled ? +ta.dataset.chars : ta.value.length;
+    }
+    const books = Math.max(1, Math.ceil(chars / perCredit));
+    total.textContent = `${fmt(chars / cps)} of audio · ${books} book${books > 1 ? "s" : ""}`;
+  }
+  // A textarea is posted only once opened, so unedited books don't send the whole text back.
+  form.addEventListener("toggle", e => { if (e.target.open) e.target.querySelector("textarea").disabled = false; }, true);
+  form.addEventListener("input", update);
+  form.addEventListener("change", update);
+  // Only one sample plays at a time.
+  form.addEventListener("play", e => form.querySelectorAll("audio").forEach(a => a !== e.target && a.pause()), true);
+})();
+</script>
+{% endblock %}

@@ -27,15 +27,19 @@ Without Docker (needs Python 3.10–3.12, `ffmpeg` and `espeak-ng`; on a Mac, `b
 
 Either way, open http://localhost:8000. The first run downloads the Kokoro voice model (~350 MB).
 
-To make small test books: `python scripts/make_samples.py` writes `samples/aesop.epub`, `samples/aesop.pdf` and a fake-DRM `samples/drm.epub`.
+To make small test books: `python scripts/make_samples.py` writes `samples/aesop.epub`, `samples/aesop.pdf` (both with front and back matter to untick) and a fake-DRM `samples/drm.epub`.
+
+Voice samples are committed in `app/static/voices/`. To re-render them after changing the voice list: `python scripts/make_voice_samples.py`.
 
 What you get:
 
-- `/`: the upload form with the free-first-book pricing message.
+- `/`: the landing page: upload, prices, a voice sample.
+- `/drafts/<id>`: choose what to narrate (front and back matter start unticked, any section's text can be edited) and pick one of six voices.
+- `/drafts/<id>/confirm`: email and the ownership checkbox.
 - `/jobs/<id>`: the status page, which refreshes itself, and then the M4B and SRT downloads.
-- A second upload from the same email shows the pricing page. "Buy" records the click and says packs are coming soon. No money moves.
+- A second book from the same email shows the pricing page. "Buy" records the click and says packs are coming soon. No money moves.
 - `/stats`: uploads, rejections, finished books, second-book attempts, buy clicks per pack, and measured speed. This is the thesis measurement.
 
-Settings (environment variables): `KEEP_HOURS` (default 24), `MAX_UPLOAD_MB` (100), `MAX_CHARS` (1,500,000), `VOICE` (`af_heart`), `DATA_DIR`.
+Settings (environment variables): `KEEP_HOURS` (default 24), `DRAFT_HOURS` (2, unconfirmed uploads), `MAX_UPLOAD_MB` (100), `MAX_CHARS` (1,500,000), `CHARS_PER_CREDIT` (600,000, one book), `CHARS_PER_SECOND` (14.5, for the length estimate), `VOICE` (default voice, `af_heart`), `DATA_DIR`.
 
 Speed: on a 4-core CPU, narration runs about 2.6× faster than real time, so a 10-hour novel takes roughly 4 hours.

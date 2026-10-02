@@ -1,30 +1,33 @@
 {% extends "base.html" %}
 {% block body %}
 <h1>Turn your ebook into an audiobook</h1>
-<p class="lede">Upload an EPUB or PDF you own. Get back one M4B audiobook of the whole book, with chapters and synced captions. <strong>Your first book is free.</strong></p>
+<p class="lede">Upload an EPUB or PDF you own. Get one M4B audiobook file with chapters and captions.</p>
 
-<form class="card" method="post" action="/convert" enctype="multipart/form-data">
+<form class="card" method="post" action="/upload" enctype="multipart/form-data">
   {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
   <label for="book">Your book (EPUB or PDF, up to {{ max_mb }} MB)</label>
   <input id="book" name="book" type="file" accept=".epub,.pdf,application/epub+zip,application/pdf" required>
-
-  <label for="email">Email</label>
-  <input id="email" name="email" type="email" value="{{ email or '' }}" autocomplete="email" required>
-  <p class="small">We use it only to track your free book. No account, no newsletter.</p>
-
-  <label class="check"><input type="checkbox" name="owns" value="true" required>
-    <span>I own this book, it is DRM-free, and the audiobook is for my personal use only.</span></label>
-
-  <button type="submit">Convert my book</button>
+  <button type="submit">Next</button>
 </form>
 
-<h2>After your free book</h2>
-<p>Buy a pack when you need more. No subscription.</p>
+<h2>Your first book is free</h2>
+<p>After that, buy a pack. No subscription.</p>
 <div class="packs">
 {% for p in packs %}
   <div class="pack"><div>{{ p.name }}</div><div class="price">{{ p.price }}</div><div class="small">{{ p.note }}</div></div>
 {% endfor %}
 </div>
 
-<p class="small" style="margin-top:2rem">We only accept DRM-free books. Kindle files, DRM-protected EPUBs and scanned PDFs are rejected. Your upload and audiobook are deleted 24 hours after conversion. Narration uses the open Kokoro voice model.</p>
+<h2>Hear it first</h2>
+<audio controls preload="none" src="/static/voices/{{ sample }}.m4a" style="width:100%"></audio>
+<p class="small">You can choose from 6 English voices before converting.</p>
+
+<dl class="faq">
+  <dt>Which books work?</dt>
+  <dd>DRM-free EPUB and text PDF files, in English. Kindle files, DRM-protected books and scanned PDFs are rejected.</dd>
+  <dt>How long does it take?</dt>
+  <dd>Roughly a third of the book's listening time: a 9-hour novel takes about 3 hours. You get a link to come back to.</dd>
+  <dt>What happens to my file?</dt>
+  <dd>Your upload is deleted as soon as the audiobook is made, and the audiobook {{ keep | int }} hours after it's ready.</dd>
+</dl>
 {% endblock %}
