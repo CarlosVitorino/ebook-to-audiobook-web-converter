@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% block title %}Payment · narrator.guru{% endblock %}
 {% block head %}{% if state == 'waiting' %}<meta http-equiv="refresh" content="3">{% endif %}{% endblock %}
 {% block body %}
 {% if state == 'waiting' %}

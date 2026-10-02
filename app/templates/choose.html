@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% block title %}Choose what to narrate · narrator.guru{% endblock %}
 {% block body %}
 <p class="steps">1 Upload · <b>2 Choose</b> · {% if not user %}3 Sign in · {% endif %}{{ 3 if user else 4 }} Confirm</p>
 <h1>{{ job.title }}</h1>

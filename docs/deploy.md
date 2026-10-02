@@ -70,7 +70,15 @@ crontab -e
 
 That keeps 14 daily copies in `data/backups/`. Copy them off the server too, for example with Hetzner's automatic server backups or a Storage Box. Audiobooks themselves don't need backups: they're deleted after 7 days anyway.
 
-## 8. Before you announce it
+## 8. Search engines
+
+The site already serves `robots.txt`, `sitemap.xml`, `llms.txt` (for AI assistants), page descriptions, social-share cards and schema.org data (product, prices, FAQ). After launch:
+
+1. [Google Search Console](https://search.google.com/search-console): add `narrator.guru` (DNS verification), then submit `https://narrator.guru/sitemap.xml`.
+2. [Bing Webmaster Tools](https://www.bing.com/webmasters): import from Google Search Console. Bing also feeds ChatGPT search and Copilot.
+3. Check the structured data with Google's [Rich Results Test](https://search.google.com/test/rich-results) and a share preview with [opengraph.xyz](https://www.opengraph.xyz/).
+
+## 9. Before you announce it
 
 - [ ] HTTPS works, `www.` redirects
 - [ ] Google sign-in and email sign-in both work (check the email isn't in spam)

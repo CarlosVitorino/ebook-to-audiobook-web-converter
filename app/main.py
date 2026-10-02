@@ -14,7 +14,7 @@ import time
 import uuid
 
 from fastapi import FastAPI, File, Form, Request, UploadFile
-from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 
@@ -24,7 +24,7 @@ from . import sections as S
 from .db import DATA, db, log, migrate
 from .extract import RejectedBook, book_title, check_extension, extract
 from .narrate import VOICE, VOICE_IDS, VOICES
-from .web import BASE_URL, COOKIE, DRAFT_HOURS, MAX_MB, current_user, page, secret_key
+from .web import BASE_URL, COOKIE, DESCRIPTION, DRAFT_HOURS, MAX_MB, PACKS, TAGLINE, current_user, faq, page, secret_key
 
 MAX_CHARS = int(os.environ.get("MAX_CHARS", "1500000"))
 UPLOADS_PER_HOUR = int(os.environ.get("UPLOADS_PER_HOUR", "10"))
@@ -260,7 +260,7 @@ def download(job_id: str, kind: str):
         return HTMLResponse("Not found or expired", status_code=404)
     log(job["email"], "download", f"{job_id} {kind}")
     safe = re.sub(r"[^\w\- ]+", "", job["title"]).strip() or "audiobook"
-    return FileResponse(path, filename=f"{safe}.{kind}")
+    return FileResponse(path, filename=f"{safe}.{kind}", headers={"X-Robots-Tag": "noindex"})
 
 
 # Legal pages. Fill the LEGAL_* settings before launch; until then the pages say they're drafts.
@@ -272,6 +272,70 @@ LEGAL = {
     "host": os.environ.get("LEGAL_HOST") or "Hetzner",
     "updated": "2 October 2026",
 }
+
+
+# ---------- for browsers, search engines and AI answer engines ----------
+
+STATIC = os.path.join(os.path.dirname(__file__), "static")
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+def favicon():
+    return FileResponse(os.path.join(STATIC, "favicon.ico"), headers={"Cache-Control": "public, max-age=604800"})
+
+
+@app.get("/apple-touch-icon.png", include_in_schema=False)
+def apple_touch_icon():
+    return FileResponse(os.path.join(STATIC, "apple-touch-icon.png"), headers={"Cache-Control": "public, max-age=604800"})
+
+
+@app.get("/site.webmanifest", include_in_schema=False)
+def webmanifest():
+    return JSONResponse({
+        "name": "narrator.guru", "short_name": "narrator", "description": DESCRIPTION, "start_url": "/",
+        "display": "browser", "background_color": "#1c1f24", "theme_color": "#36404b",
+        "icons": [{"src": "/static/icon-192.png", "sizes": "192x192", "type": "image/png"},
+                  {"src": "/static/icon-512.png", "sizes": "512x512", "type": "image/png"}],
+    }, media_type="application/manifest+json")
+
+
+@app.get("/robots.txt", include_in_schema=False)
+def robots():
+    # Everyone is welcome to the public pages, AI crawlers included; private ones stay out.
+    return PlainTextResponse(
+        "User-agent: *\nAllow: /\n"
+        "Disallow: /drafts/\nDisallow: /jobs/\nDisallow: /paid/\nDisallow: /signin\n"
+        "Disallow: /stats\nDisallow: /webhooks/\nDisallow: /upload\nDisallow: /buy\n\n"
+        f"Sitemap: {BASE_URL}/sitemap.xml\n"
+    )
+
+
+@app.get("/sitemap.xml", include_in_schema=False)
+def sitemap():
+    urls = "".join(f"<url><loc>{BASE_URL}{p}</loc></url>" for p in ("/", "/terms", "/privacy", "/refunds"))
+    return Response(
+        f'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{urls}</urlset>',
+        media_type="application/xml",
+    )
+
+
+@app.get("/llms.txt", include_in_schema=False)
+def llms_txt():
+    """A plain summary for AI assistants (llmstxt.org), built from the same data as the page."""
+    prices = "\n".join(f"- {p['name']}: {p['price']} ({p['per_book']} per book)" for p in PACKS)
+    answers = "\n\n".join(f"### {q}\n{a}" for q, a in faq())
+    return PlainTextResponse(
+        f"# narrator.guru\n\n> {DESCRIPTION}\n\n"
+        f"{TAGLINE}: upload a DRM-free EPUB or text PDF in English, untick the parts you don't want "
+        "(copyright page, contents, acknowledgements…), pick one of six voices, and get back a single M4B "
+        "audiobook file with chapters and captions. Built for people who own ebooks but want to listen to them: "
+        "commuters, readers with dyslexia or low vision, and self-published authors.\n\n"
+        f"## Prices\n- First book: free\n{prices}\nNo subscription. Books in an account don't expire. "
+        "One book covers up to about 10 hours of audio.\n\n"
+        f"## Questions\n\n{answers}\n\n"
+        f"## Links\n- [Convert a book]({BASE_URL}/)\n- [Terms]({BASE_URL}/terms)\n"
+        f"- [Privacy]({BASE_URL}/privacy)\n- [Refunds]({BASE_URL}/refunds)\n"
+    )
 
 
 def legal_page(name: str):

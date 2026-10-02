@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% block title %}{{ job.title }} · narrator.guru{% endblock %}
 {% block head %}{% if job.status in ('queued', 'working') %}<meta http-equiv="refresh" content="10">{% endif %}{% endblock %}
 {% block body %}
 <h1>{{ job.title }}</h1>

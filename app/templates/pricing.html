@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% block title %}Prices · narrator.guru{% endblock %}
 {% block body %}
 <h1>{% if have == 0 and user.free_denied %}Free books are one per person{% elif have == 0 %}You've used your free book{% else %}This book needs {{ needed }} books{% endif %}</h1>
 {% if have == 0 and user.free_denied %}<p>{% if user.free_denied == 'disposable' %}Free books aren't available for disposable email addresses.{% else %}It looks like you've already had a free book with another account.{% endif %}</p>{% endif %}

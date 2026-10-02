@@ -247,3 +247,12 @@ Disposable-email domains (9,199, CC0 list in `app/disposable_domains.txt`) never
   - espeak-ng: GPL-3.0. Fine for a hosted service, because we don't distribute it; it would matter only if we shipped the software to users.
   - Disposable-domain list: CC0.
 - Tests: 26 phase D checks with web and worker as separate processes; phase B (23) and C (22) still pass.
+
+## 17. Favicon, SEO and GEO (2026-10-03)
+
+- Icon: a cream open book with a red bookmark on slate (`app/static/favicon.svg`, plus `.ico`, 180/192/512 PNGs and a web manifest). Social card `app/static/og.png`, 1200×630, in the Bookshelf style.
+- Every page has its own title. Public pages (home, terms, privacy, refunds) get a description, canonical URL and Open Graph/Twitter tags. Every other page (drafts, jobs, sign-in, stats…) is `noindex`; downloads send `X-Robots-Tag: noindex`.
+- `robots.txt` allows everyone, AI crawlers included, and keeps private paths out. `sitemap.xml` lists the four public pages.
+- The landing page FAQ grew from 4 to 8 plain factual answers (what you get, price, voices, legality). They live in `web.faq()`, which also feeds the schema.org `FAQPage` and `/llms.txt`, so the page, structured data and AI summary can't drift apart. JSON-LD also describes the site, the organisation and the product with all four offers (free + 3 packs).
+- `/llms.txt` (llmstxt.org format) gives AI assistants a factual summary: what it does, who it's for, prices, FAQ, links.
+- Search Console and Bing steps are in `docs/deploy.md` §8.

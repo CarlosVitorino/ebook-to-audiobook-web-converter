@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% block title %}narrator.guru · EPUB and PDF to M4B audiobook converter{% endblock %}
+{% block head %}<script type="application/ld+json">{{ structured | tojson }}</script>{% endblock %}
 {% block hero %}
 <section class="hero"><div class="wrap">
 {% include "_spines.html" %}
@@ -33,13 +35,7 @@
 
 <h2 id="questions">Questions</h2>
 <dl class="faq">
-  <dt>Which books work?</dt>
-  <dd>DRM-free EPUB and text PDF files, in English. Kindle files, DRM-protected books and scanned PDFs are rejected.</dd>
-  <dt>How long does it take?</dt>
-  <dd>Your audiobook is ready long before you could finish listening to it: about 40 minutes for The Great Gatsby's 4 hours. We email you when it's done.</dd>
-  <dt>Can I skip the copyright page and the acknowledgements?</dt>
-  <dd>Yes. Before converting you see every section of the book and untick what you don't want to hear.</dd>
-  <dt>What happens to my file?</dt>
-  <dd>Your upload is deleted as soon as the audiobook is made, and the audiobook {{ keep | keep_text }} after it's ready.</dd>
-</dl>
+{% for q, a in faq %}  <dt>{{ q }}</dt>
+  <dd>{{ a }}</dd>
+{% endfor %}</dl>
 {% endblock %}
