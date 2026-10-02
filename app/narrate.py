@@ -17,6 +17,16 @@ from kokoro_onnx import EspeakConfig, Kokoro
 from .extract import Chapter
 
 VOICE = os.environ.get("VOICE", "af_heart")
+# The voices offered in step 2: the best-rated English ones Kokoro ships.
+VOICES = [
+    {"id": "af_heart", "name": "Heart", "accent": "American", "gender": "female"},
+    {"id": "af_bella", "name": "Bella", "accent": "American", "gender": "female"},
+    {"id": "am_michael", "name": "Michael", "accent": "American", "gender": "male"},
+    {"id": "am_fenrir", "name": "Fenrir", "accent": "American", "gender": "male"},
+    {"id": "bf_emma", "name": "Emma", "accent": "British", "gender": "female"},
+    {"id": "bm_george", "name": "George", "accent": "British", "gender": "male"},
+]
+VOICE_IDS = {v["id"] for v in VOICES}
 MODEL_DIR = os.environ.get("MODEL_DIR", os.path.join(os.path.dirname(__file__), "..", "models"))
 SR = 24000
 
@@ -91,9 +101,11 @@ def narrate(
     title: str,
     workdir: str,
     progress: Callable[[int, int], None] = lambda done, total: None,
+    voice: str = VOICE,
 ) -> tuple[str, str, float]:
     """Write <workdir>/book.m4b and <workdir>/book.srt. Returns (m4b, srt, seconds)."""
     tts = kokoro()
+    lang = "en-gb" if voice.startswith("b") else "en-us"
     wav_path = os.path.join(workdir, "book.wav")
     srt_path = os.path.join(workdir, "book.srt")
     meta_path = os.path.join(workdir, "chapters.txt")
@@ -109,7 +121,7 @@ def narrate(
 
         def say(text: str, gap: float):
             nonlocal t, cue
-            audio, _ = tts.create(text, voice=VOICE, speed=1.0, lang="en-us")
+            audio, _ = tts.create(text, voice=voice, speed=1.0, lang=lang)
             start, t = t, t + len(audio) / SR
             wav.write(audio)
             cue += 1
@@ -117,11 +129,11 @@ def narrate(
             wav.write(_silence(gap))
             t += gap
 
-        for ch in chapters:
-            marks.append((t, ch.title))
+        for n, ch in enumerate(chapters, 1):
+            marks.append((t, ch.title or f"Part {n}"))
             body = ch.text
             # Read the title aloud unless the chapter text already opens with it.
-            if not body.lstrip().lower().startswith(ch.title.lower()[:30]):
+            if ch.title and not body.lstrip().lower().startswith(ch.title.lower()[:30]):
                 say(ch.title, PARAGRAPH_GAP)
             for para in body.split("\n\n"):
                 for s in sentences(para):
