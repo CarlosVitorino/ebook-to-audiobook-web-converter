@@ -1,4 +1,4 @@
-# Ebook-to-Audiobook Web Converter
+# narrator.guru — Ebook-to-Audiobook Web Converter
 ## What this is
 
 Upload an EPUB or PDF, get back a narrated audiobook with captions The result makes this newly possible: Readers with visual impairments, commuters, and people with dyslexia own ebooks they bought legally but cannot convert to audio without a terminal and Python. Self-published authors want audio versions of their own books without paying a narrator or an Audible distribution fee. Today they either give up, pay ACX narrators hundreds of dollars, or ask a technical friend. The engine already does this; the gap is a web form.
@@ -17,8 +17,8 @@ A simple web form where a user uploads an EPUB or PDF and receives back a finish
 
 ## What this is not building
 
-- Any user accounts, dashboards, or libraries beyond the single conversion flow
-- Custom voice selection or voice cloning
+- Dashboards or libraries beyond the single conversion flow (accounts exist only to sign in and hold credits; decided 2026-10-02)
+- Voice cloning or custom voices (picking one of a few built-in Kokoro voices is allowed; decided 2026-10-02)
 - Mobile apps
 - DRM-protected ebook handling
 - Distributed audiobook publishing or store integrations

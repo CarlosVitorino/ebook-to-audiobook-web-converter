@@ -4,8 +4,8 @@ What would stop this: copywrite issues. We need a monetizing strategy. Like 1 fr
 Who it is for: Readers with visual impairments, commuters, and people with dyslexia who own legally purchased ebooks they cannot convert to audio without technical tools, plus self-published authors who want audio versions of their own books without paying a professional narrator hundreds or thousands of dollars.
 The smallest thing worth building first: A simple web form where a user uploads an EPUB or PDF and receives back a finished whole-book M4B file with synced captions, built on the existing open-source engine, with a first-conversion-free pricing message. If people will pay for a second book after their first free conversion, the thesis holds.
 Do not build:
-- Any user accounts, dashboards, or libraries beyond the single conversion flow
-- Custom voice selection or voice cloning
+- Dashboards or libraries beyond the single conversion flow (accounts exist only to sign in and hold credits; decided 2026-10-02)
+- Voice cloning or custom voices (picking one of a few built-in Kokoro voices is allowed; decided 2026-10-02)
 - Mobile apps
 - DRM-protected ebook handling
 - Distributed audiobook publishing or store integrations
