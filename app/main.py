@@ -4,13 +4,13 @@ An upload becomes a job with status 'draft', owned by a cookie (and by the user
 once they sign in), until it is confirmed. Drafts nobody confirms are deleted
 after DRAFT_HOURS. Confirming spends credits; a failed conversion refunds them.
 """
+import base64
 import os
 import re
 import secrets
 import shutil
 import threading
 import time
-import traceback
 import uuid
 
 from fastapi import FastAPI, File, Form, Request, UploadFile
@@ -18,16 +18,17 @@ from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 
-from . import accounts, mail, payments
-from .credits import start_draft, wake
+from . import abuse, accounts, payments, worker
+from .credits import start_draft
 from . import sections as S
 from .db import DATA, db, log, migrate
 from .extract import RejectedBook, book_title, check_extension, extract
-from .narrate import VOICE, VOICE_IDS, VOICES, narrate
-from .web import BASE_URL, COOKIE, KEEP_HOURS, MAX_MB, PACKS, current_user, page, secret_key
+from .narrate import VOICE, VOICE_IDS, VOICES
+from .web import BASE_URL, COOKIE, DRAFT_HOURS, MAX_MB, current_user, page, secret_key
 
-DRAFT_HOURS = float(os.environ.get("DRAFT_HOURS", "2"))
 MAX_CHARS = int(os.environ.get("MAX_CHARS", "1500000"))
+UPLOADS_PER_HOUR = int(os.environ.get("UPLOADS_PER_HOUR", "10"))
+STATS_PASSWORD = os.environ.get("STATS_PASSWORD", "")
 
 migrate()
 app = FastAPI()
@@ -87,6 +88,8 @@ def home(request: Request):
 async def upload(request: Request, book: UploadFile = File(...)):
     owner = request.cookies.get(COOKIE) or secrets.token_hex(16)
     user = current_user(request)
+    if abuse.limited("upload", abuse.ip_key(request), UPLOADS_PER_HOUR, 3600):
+        return page(request, "home.html", {"sample": VOICE, "books": [], "error": "Too many uploads from your network. Please try again in an hour."}, 429, owner)
 
     def again(msg):
         log(user["email"] if user else "", "rejected", msg)
@@ -260,8 +263,48 @@ def download(job_id: str, kind: str):
     return FileResponse(path, filename=f"{safe}.{kind}")
 
 
+# Legal pages. Fill the LEGAL_* settings before launch; until then the pages say they're drafts.
+LEGAL = {
+    "owner": os.environ.get("LEGAL_OWNER") or "[legal name of the business]",
+    "contact": os.environ.get("LEGAL_CONTACT") or "hello@narrator.guru",
+    "law": os.environ.get("LEGAL_LAW") or "[country]",
+    "email_provider": os.environ.get("LEGAL_EMAIL_PROVIDER") or "Our email provider",
+    "host": os.environ.get("LEGAL_HOST") or "Hetzner",
+    "updated": "2 October 2026",
+}
+
+
+def legal_page(name: str):
+    def show(request: Request):
+        draft = "[" in LEGAL["owner"] or "[" in LEGAL["law"]
+        return page(request, f"legal/{name}.html", {
+            **LEGAL, "draft_hours": DRAFT_HOURS, "draft_note": "Draft: not yet reviewed." if draft else "",
+        })
+    return show
+
+
+for _name in ("terms", "privacy", "refunds"):
+    app.add_api_route(f"/{_name}", legal_page(_name), methods=["GET"], response_class=HTMLResponse)
+
+
+def stats_allowed(request: Request) -> bool:
+    """HTTP Basic auth with STATS_PASSWORD (any user name). Without one, only on a localhost site."""
+    if not STATS_PASSWORD:
+        return BASE_URL.startswith(("http://localhost", "http://127.0.0.1"))
+    auth = request.headers.get("authorization", "")
+    if not auth.startswith("Basic "):
+        return False
+    try:
+        _, _, given = base64.b64decode(auth[6:]).decode().partition(":")
+    except ValueError:
+        return False
+    return secrets.compare_digest(given.encode(), STATS_PASSWORD.encode())
+
+
 @app.get("/stats", response_class=HTMLResponse)
 def stats(request: Request):
+    if not stats_allowed(request):
+        return HTMLResponse("Stats are private.", status_code=401, headers={"WWW-Authenticate": 'Basic realm="stats"'})
     with db() as con:
         counts = {
             r["kind"]: (r["n"], r["people"])
@@ -297,99 +340,7 @@ def stats(request: Request):
 # ---------- background worker ----------
 
 
-def run_job(job):
-    jobdir = folder(job["id"])
-    ext = "." + job["format"]
-    last = [0.0]
-
-    def progress(done, total):
-        if time.time() - last[0] > 3:
-            last[0] = time.time()
-            with db() as con:
-                con.execute("UPDATE jobs SET progress=? WHERE id=?", (done / total, job["id"]))
-
-    if os.path.exists(os.path.join(jobdir, "sections.json")):
-        chapters = S.chapters(S.load(jobdir))
-    else:  # queued before the section picker existed
-        chapters = extract(os.path.join(jobdir, "source" + ext), ext)
-    _, _, seconds = narrate(chapters, job["title"], jobdir, progress, job["voice"] or VOICE)
-    for name in ("source" + ext, "sections.json"):
-        if os.path.exists(os.path.join(jobdir, name)):
-            os.remove(os.path.join(jobdir, name))
-    return seconds
-
-
-def notify(to: str, subject: str, body: str):
-    """Mail problems must never fail a finished book."""
-    if not to:
-        return
-    try:
-        mail.send(to, subject, body)
-    except Exception:
-        traceback.print_exc()
-
-
-def cleanup():
-    now = time.time()
-    with db() as con:
-        old = con.execute(
-            "SELECT id, 'expired' AS next FROM jobs WHERE status IN ('done','failed') AND finished < ? "
-            "UNION ALL SELECT id, 'abandoned' FROM jobs WHERE status='draft' AND created < ?",
-            (now - KEEP_HOURS * 3600, now - DRAFT_HOURS * 3600),
-        ).fetchall()
-        for row in old:
-            shutil.rmtree(folder(row["id"]), ignore_errors=True)
-            con.execute("UPDATE jobs SET status=? WHERE id=?", (row["next"], row["id"]))
-
-
-def worker():
-    while True:
-        cleanup()
-        with db() as con:
-            job = con.execute(
-                "SELECT * FROM jobs WHERE status='queued' ORDER BY created LIMIT 1"
-            ).fetchone()
-            if job:
-                con.execute(
-                    "UPDATE jobs SET status='working', started=? WHERE id=?", (time.time(), job["id"])
-                )
-        if not job:
-            wake.wait(60)
-            wake.clear()
-            continue
-        link = f"{BASE_URL}/jobs/{job['id']}"
-        try:
-            seconds = run_job(job)
-            with db() as con:
-                con.execute(
-                    "UPDATE jobs SET status='done', progress=1, audio_seconds=?, finished=? WHERE id=?",
-                    (seconds, time.time(), job["id"]),
-                )
-            log(job["email"], "done", f"{job['id']} {seconds:.0f}s audio")
-            notify(job["email"], f"Your audiobook is ready: {job['title']}", (
-                f"\"{job['title']}\" is ready to download:\n\n{link}\n\n"
-                f"The files are deleted {KEEP_HOURS:.0f} hours from now, so download them soon."
-            ))
-        except Exception as e:
-            traceback.print_exc()
-            with db() as con:
-                con.execute(
-                    "UPDATE jobs SET status='failed', error=?, finished=? WHERE id=?",
-                    (str(e)[:500], time.time(), job["id"]),
-                )
-                if job["user_id"] and job["credits_used"]:
-                    con.execute(
-                        "INSERT INTO credits (user_id, delta, reason, ref, created) VALUES (?,?,'refund',?,?)",
-                        (job["user_id"], job["credits_used"], job["id"], time.time()),
-                    )
-            log(job["email"], "failed", f"{job['id']} {e}")
-            notify(job["email"], f"We couldn't convert {job['title']}", (
-                f"Sorry, something went wrong narrating \"{job['title']}\". "
-                "The book it used has been given back to your account.\n\n"
-                f"{BASE_URL}/"
-            ))
-
-
 @app.on_event("startup")
 def start_worker():
-    threading.Thread(target=worker, daemon=True).start()
+    if os.environ.get("RUN_WORKER", "1") == "1":
+        threading.Thread(target=worker.run, daemon=True).start()

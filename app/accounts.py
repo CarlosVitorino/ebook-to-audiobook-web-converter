@@ -1,7 +1,8 @@
 """Sign-in with Google or an emailed link. Accounts exist only to hold credits.
 
 Both ways end in sign_in(): find or create the user by email, give a new user
-their free book, and attach any draft this browser uploaded before signing in.
+their free book (unless abuse.py says this person already had one), and attach any
+draft this browser uploaded before signing in.
 """
 import hashlib
 import os
@@ -14,7 +15,7 @@ import httpx
 from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
-from . import mail
+from . import abuse, mail
 from .db import db, log
 from .web import BASE_URL, COOKIE, page, safe_next
 
@@ -22,13 +23,19 @@ GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
 GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "")
 LINK_MINUTES = 20
 LINKS_PER_HOUR = 5
+LINKS_PER_IP_HOUR = 20
 
 router = APIRouter()
 
 
-def sign_in(request: Request, email: str, method: str, google_sub: str | None = None) -> int:
+def sign_in(request: Request, email: str, method: str, google_sub: str | None = None) -> str:
+    """Sign the browser in. Returns the device id; pass it to signed_in() to set the cookie."""
     email = email.strip().lower()
+    device = request.cookies.get(COOKIE) or secrets.token_hex(16)
+    ip = abuse.ip_key(request)
+    denied = None
     with db() as con:
+        con.execute("BEGIN IMMEDIATE")
         user = None
         if google_sub:
             user = con.execute("SELECT * FROM users WHERE google_sub=?", (google_sub,)).fetchone()
@@ -47,19 +54,32 @@ def sign_in(request: Request, email: str, method: str, google_sub: str | None = 
                 "AND status IN ('queued','working','done','expired') LIMIT 1",
                 (email,),
             ).fetchone()
-            if not had_free:
+            denied = "email" if had_free else abuse.free_book_denied(con, email, device, ip)
+            if denied:
+                con.execute("UPDATE users SET free_denied=? WHERE id=?", (denied, uid))
+            else:
                 con.execute(
                     "INSERT INTO credits (user_id, delta, reason, created) VALUES (?,1,'free',?)", (uid, time.time())
                 )
-        owner = request.cookies.get(COOKIE)
-        if owner:
-            con.execute("UPDATE jobs SET user_id=? WHERE owner=? AND status='draft' AND user_id IS NULL", (uid, owner))
+                con.execute(
+                    "INSERT INTO free_grants (user_id, email_key, device, ip, created) VALUES (?,?,?,?,?)",
+                    (uid, abuse.email_key(email), device, ip, time.time()),
+                )
+        con.execute("UPDATE jobs SET user_id=? WHERE owner=? AND status='draft' AND user_id IS NULL", (uid, device))
     if not user:
         log(email, "signup", method)
+        if denied:
+            log(email, "free_denied", denied)
     log(email, "signin", method)
     request.session.clear()
     request.session["uid"] = uid
-    return uid
+    return device
+
+
+def signed_in(url: str, device: str) -> RedirectResponse:
+    resp = RedirectResponse(url, status_code=303)
+    resp.set_cookie(COOKIE, device, max_age=365 * 86400, httponly=True, samesite="lax")
+    return resp
 
 
 @router.get("/signin", response_class=HTMLResponse)
@@ -86,6 +106,8 @@ def email_link(request: Request, email: str = Form(""), next: str = Form("/")):
     ctx = {"next": nxt, "google": bool(GOOGLE_CLIENT_ID), "email": email}
     if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email):
         return page(request, "signin.html", {**ctx, "error": "Please enter a valid email address."}, 400)
+    if abuse.limited("signin_link_ip", abuse.ip_key(request), LINKS_PER_IP_HOUR, 3600):
+        return page(request, "signin.html", {**ctx, "error": "Too many sign-in links from your network. Please try again in an hour."}, 429)
     with db() as con:
         recent = con.execute(
             "SELECT COUNT(*) FROM login_tokens WHERE email=? AND created > ?", (email, time.time() - 3600)
@@ -131,8 +153,8 @@ def email_link_use(request: Request, token: str):
                 "UPDATE login_tokens SET used=? WHERE hash=? AND used IS NULL", (time.time(), row["hash"])
             ).rowcount
         if claimed:
-            sign_in(request, row["email"], "email")
-            return RedirectResponse(safe_next(row["next"]), status_code=303)
+            device = sign_in(request, row["email"], "email")
+            return signed_in(safe_next(row["next"]), device)
     return RedirectResponse("/signin", status_code=303)
 
 
@@ -171,5 +193,5 @@ def google_callback(request: Request, code: str = "", state: str = ""):
         return fail("Google sign-in didn't complete. Please try again.")
     if not info.get("email") or not info.get("email_verified") or not info.get("sub"):
         return fail("Your Google account has no verified email. Use the email link instead.")
-    sign_in(request, info["email"], "google", google_sub=info["sub"])
-    return RedirectResponse(saved["next"], status_code=303)
+    device = sign_in(request, info["email"], "google", google_sub=info["sub"])
+    return signed_in(saved["next"], device)

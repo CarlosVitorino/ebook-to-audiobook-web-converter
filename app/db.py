@@ -22,6 +22,8 @@ def db():
 
 def migrate():
     with db() as con:
+        # WAL lets the web app read while the worker process writes.
+        con.execute("PRAGMA journal_mode=WAL")
         con.executescript(
             """
             CREATE TABLE IF NOT EXISTS jobs (
@@ -45,6 +47,16 @@ def migrate():
                 pack TEXT NOT NULL, books INTEGER NOT NULL, draft_id TEXT, status TEXT NOT NULL,
                 creem_order_id TEXT UNIQUE, amount_cents INTEGER, currency TEXT, created REAL, paid REAL
             );
+            -- Who got a free book, keyed several ways, so a second account rarely gets another.
+            CREATE TABLE IF NOT EXISTS free_grants (
+                user_id INTEGER NOT NULL, email_key TEXT, device TEXT, ip TEXT, created REAL
+            );
+            CREATE INDEX IF NOT EXISTS free_email ON free_grants(email_key);
+            CREATE INDEX IF NOT EXISTS free_device ON free_grants(device);
+            CREATE INDEX IF NOT EXISTS free_ip ON free_grants(ip, created);
+            -- Rate limits: one row per counted action, pruned by the worker.
+            CREATE TABLE IF NOT EXISTS hits (kind TEXT NOT NULL, key TEXT NOT NULL, ts REAL NOT NULL);
+            CREATE INDEX IF NOT EXISTS hits_key ON hits(kind, key, ts);
             CREATE TABLE IF NOT EXISTS login_tokens (
                 hash TEXT PRIMARY KEY, email TEXT NOT NULL, next TEXT, created REAL, used REAL
             );
@@ -54,8 +66,9 @@ def migrate():
         for col in ("owner TEXT", "voice TEXT", "user_id INTEGER", "credits_used INTEGER"):
             if col.split()[0] not in have:
                 con.execute(f"ALTER TABLE jobs ADD COLUMN {col}")
-        # Jobs interrupted by a restart go back in the queue.
-        con.execute("UPDATE jobs SET status='queued', progress=0 WHERE status='working'")
+        have = {r["name"] for r in con.execute("PRAGMA table_info(users)")}
+        if "free_denied" not in have:
+            con.execute("ALTER TABLE users ADD COLUMN free_denied TEXT")
 
 
 def log(email: str, kind: str, detail: str = ""):

@@ -1,0 +1,22 @@
+# On the server: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+# Caddy gets an HTTPS certificate for DOMAIN automatically and forwards to the web app.
+services:
+  web:
+    environment:
+      FORWARDED_ALLOW_IPS: "*"   # trust Caddy's X-Forwarded-For, so rate limits see the real visitor
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports: ["80:80", "443:443"]
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN in .env, e.g. narrator.guru}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [web]
+
+volumes:
+  caddy_data:
+  caddy_config:

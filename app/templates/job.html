@@ -14,7 +14,7 @@
     <a class="button" href="/jobs/{{ job.id }}/download/m4b">Download audiobook (M4B)</a>
     <a class="button secondary" href="/jobs/{{ job.id }}/download/srt">Captions (SRT)</a>
   </div>
-  <p class="small">The captions are also inside the M4B. Files are deleted {{ keep | int }} hours after conversion.</p>
+  <p class="small">The captions are also inside the M4B. Files are deleted {{ keep | keep_text }} after conversion.</p>
   <h2>Got another book?</h2>
     {% if user and balance > 0 %}
     <p>You have {{ balance }} book{{ 's' if balance != 1 }} left. <a href="/">Upload another</a>.</p>
@@ -25,6 +25,6 @@
 {% elif job.status == 'failed' %}
   <p class="error">Sorry, something went wrong narrating this book. The book it used has been given back to your account; <a href="/">try again</a>.</p>
 {% else %}
-  <p class="lede">This audiobook has been deleted. Files are kept for {{ keep | int }} hours.</p>
+  <p class="lede">This audiobook has been deleted. Files are kept for {{ keep | keep_text }}.</p>
 {% endif %}
 {% endblock %}

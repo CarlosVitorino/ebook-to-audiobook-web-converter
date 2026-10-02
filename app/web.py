@@ -8,7 +8,8 @@ from fastapi.templating import Jinja2Templates
 from .db import DATA, db
 
 BASE_URL = os.environ.get("BASE_URL", "http://localhost:8000").rstrip("/")
-KEEP_HOURS = float(os.environ.get("KEEP_HOURS", "24"))
+KEEP_HOURS = float(os.environ.get("KEEP_HOURS", "168"))  # finished books are kept 7 days
+DRAFT_HOURS = float(os.environ.get("DRAFT_HOURS", "2"))  # unconfirmed uploads
 MAX_MB = int(os.environ.get("MAX_UPLOAD_MB", "100"))
 # How many times faster than real time the server narrates, for the "ready in about" estimate.
 NARRATION_SPEED = float(os.environ.get("NARRATION_SPEED", "5"))
@@ -35,7 +36,12 @@ def secret_key() -> str:
         return f.read().strip()
 
 
+def keep_text(hours: float) -> str:
+    return f"{hours / 24:.0f} days" if hours >= 48 else f"{hours:.0f} hours"
+
+
 templates = Jinja2Templates(directory=os.path.join(os.path.dirname(__file__), "templates"))
+templates.env.filters["keep_text"] = keep_text
 templates.env.filters["duration"] = lambda s: (
     f"{int(s // 3600)} h {int(s % 3600 // 60)} min" if s >= 3600 else f"{max(1, round(s / 60))} min"
 )

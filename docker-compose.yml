@@ -1,25 +1,45 @@
+# Two services from one image: the web app, and the narrator as its own process so a
+# web restart or deploy never kills a book halfway. They share ./data (SQLite in WAL mode).
+# Settings come from a .env file next to this one (see .env.example); all optional locally.
+# On a server, add docker-compose.prod.yml for HTTPS (see docs/deploy.md).
+x-env: &env
+  BASE_URL: ${BASE_URL:-http://localhost:8000}
+  SECRET_KEY: ${SECRET_KEY:-}
+  STATS_PASSWORD: ${STATS_PASSWORD:-}
+  NARRATION_SPEED: ${NARRATION_SPEED:-5}
+  GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+  GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+  SMTP_HOST: ${SMTP_HOST:-}
+  SMTP_PORT: ${SMTP_PORT:-587}
+  SMTP_USER: ${SMTP_USER:-}
+  SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+  MAIL_FROM: ${MAIL_FROM:-narrator.guru <hello@narrator.guru>}
+  CREEM_API_KEY: ${CREEM_API_KEY:-}
+  CREEM_WEBHOOK_SECRET: ${CREEM_WEBHOOK_SECRET:-}
+  CREEM_API_BASE: ${CREEM_API_BASE:-https://test-api.creem.io}
+  CREEM_PRODUCT_ONE: ${CREEM_PRODUCT_ONE:-}
+  CREEM_PRODUCT_FIVE: ${CREEM_PRODUCT_FIVE:-}
+  CREEM_PRODUCT_FIFTEEN: ${CREEM_PRODUCT_FIFTEEN:-}
+  LEGAL_OWNER: ${LEGAL_OWNER:-}
+  LEGAL_CONTACT: ${LEGAL_CONTACT:-}
+  LEGAL_LAW: ${LEGAL_LAW:-}
+  LEGAL_EMAIL_PROVIDER: ${LEGAL_EMAIL_PROVIDER:-}
+  LEGAL_HOST: ${LEGAL_HOST:-}
+
 services:
   web:
     build: .
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./data:/data
-    # Values come from a .env file next to this one (see .env.example). All are optional locally.
-    environment:
-      BASE_URL: ${BASE_URL:-http://localhost:8000}
-      SECRET_KEY: ${SECRET_KEY:-}
-      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
-      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
-      SMTP_HOST: ${SMTP_HOST:-}
-      SMTP_PORT: ${SMTP_PORT:-587}
-      SMTP_USER: ${SMTP_USER:-}
-      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
-      MAIL_FROM: ${MAIL_FROM:-narrator.guru <hello@narrator.guru>}
-      CREEM_API_KEY: ${CREEM_API_KEY:-}
-      CREEM_WEBHOOK_SECRET: ${CREEM_WEBHOOK_SECRET:-}
-      CREEM_API_BASE: ${CREEM_API_BASE:-https://test-api.creem.io}
-      CREEM_PRODUCT_ONE: ${CREEM_PRODUCT_ONE:-}
-      CREEM_PRODUCT_FIVE: ${CREEM_PRODUCT_FIVE:-}
-      CREEM_PRODUCT_FIFTEEN: ${CREEM_PRODUCT_FIFTEEN:-}
+    volumes: ["./data:/data"]
     restart: unless-stopped
+    environment:
+      <<: *env
+      RUN_WORKER: "0"
+    ports:
+      - "127.0.0.1:8000:8000"   # this machine only; on a server Caddy faces the internet
+
+  worker:
+    build: .
+    volumes: ["./data:/data"]
+    restart: unless-stopped
+    environment: *env
+    command: ["python", "-m", "app.worker"]

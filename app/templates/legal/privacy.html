@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Privacy · narrator.guru{% endblock %}
+{% block body %}
+<h1>Privacy</h1>
+<p class="small">Last updated {{ updated }}. {{ draft_note }}</p>
+<p>{{ owner }} runs narrator.guru and is responsible for your data. Contact: <a href="mailto:{{ contact }}">{{ contact }}</a>. We collect as little as we can, sell nothing, and use no advertising or analytics trackers.</p>
+
+<h2>What we keep, and why</h2>
+<table>
+  <thead><tr><th>What</th><th>Why</th><th>How long</th></tr></thead>
+  <tbody>
+    <tr><td>Your email address (and your Google account id if you sign in with Google)</td><td>Your account: sign-in, your books balance, "your audiobook is ready" emails</td><td>Until you ask us to delete your account</td></tr>
+    <tr><td>The ebook you upload and the text you choose</td><td>To make your audiobook</td><td>Deleted as soon as the audiobook is made; unconverted uploads after {{ draft_hours | int }} hours</td></tr>
+    <tr><td>Your audiobook and captions</td><td>So you can download them</td><td>{{ keep | keep_text }}</td></tr>
+    <tr><td>Book titles, sizes and the voice used</td><td>Running the service and fixing problems</td><td>Until you ask us to delete your account</td></tr>
+    <tr><td>A scrambled (hashed) form of your network address and a random browser id</td><td>Limiting abuse, like one person taking many free books</td><td>Up to 30 days for limits; kept with free-book records while your account exists</td></tr>
+    <tr><td>Your purchases (pack, amount, Creem order number)</td><td>Your balance, and our accounts</td><td>As long as tax law requires</td></tr>
+  </tbody>
+</table>
+<p>The legal basis is our contract with you, plus our legitimate interest in preventing abuse and keeping the service running.</p>
+
+<h2>Cookies</h2>
+<p>Two cookies, both needed for the site to work: a session cookie that keeps you signed in, and a random browser id that ties an upload to your browser before you sign in and helps us keep free books to one per person. No tracking cookies, so there's no cookie banner.</p>
+
+<h2>Who else sees your data</h2>
+<ul>
+  <li><strong>Creem</strong> processes payments as merchant of record. We never see your card details.</li>
+  <li><strong>Google</strong>, only if you choose to sign in with Google.</li>
+  <li><strong>{{ email_provider }}</strong> sends our emails.</li>
+  <li><strong>{{ host }}</strong> hosts the server, in the EU.</li>
+</ul>
+<p>Your book is narrated on our own server. It is not sent to any AI company.</p>
+
+<h2>Your rights</h2>
+<p>You can ask to see, correct, export or delete your data at any time by writing to <a href="mailto:{{ contact }}">{{ contact }}</a>. You can also complain to your data protection authority.</p>
+{% endblock %}

@@ -80,7 +80,7 @@
 
   /* tables */
   table { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
-  th, td { text-align:left; padding:.55rem .5rem; border-bottom:1px solid var(--line); }
+  th, td { text-align:left; vertical-align:top; padding:.55rem .5rem; border-bottom:1px solid var(--line); }
   th { font:700 .75rem var(--head); text-transform:uppercase; letter-spacing:.06em; color:#9c9384; border-bottom:2px solid var(--rule); }
   td.num, th.num { text-align:right; }
   tr.free td { color:#9c9384; } tr.best td { color:var(--gold); font-weight:700; }
@@ -127,6 +127,7 @@
 <main class="wrap">
 {% block body %}{% endblock %}
 </main>
-<footer><div class="wrap"><span>narrator.guru · DRM-free EPUB and PDF to M4B audiobooks · no subscription</span></div></footer>
+<footer><div class="wrap"><span>narrator.guru · DRM-free EPUB and PDF to M4B audiobooks · no subscription</span>
+<span><a href="/terms">Terms</a> · <a href="/privacy">Privacy</a> · <a href="/refunds">Refunds</a></span></div></footer>
 </body>
 </html>

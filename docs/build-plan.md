@@ -62,6 +62,7 @@ Close alternative: wrap abogen's own `abogen-web` Flask UI. Faster on day one, b
 - **Voice:** `af_heart`, a single fixed voice.
 - **Packs on the pricing page:** €9 for 1 book, €29 for 4, €79 for 12, taken from the business notes. Superseded 2026-10-02: €2.99 / €9.95 for 5 / €24.95 for 15 (see `docs/v1-plan.md`).
 
+- **Licences checked** (2026-10-02): Kokoro-82M Apache-2.0 (commercial OK), kokoro-onnx MIT, espeak-ng GPL-3.0 (fine as a hosted service). Details in `docs/v1-plan.md` §16.
 - **v1 scope** (Carlos, 2026-10-02): name narrator.guru; section picker + text editing; small voice picker; Google + magic-link accounts holding credits; Creem payments; €9/€29/€79. Details and phases in `docs/v1-plan.md`.
 
 ## Known gaps (on purpose, PoC)

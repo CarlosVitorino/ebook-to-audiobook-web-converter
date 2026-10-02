@@ -1,6 +1,6 @@
 # Plan: first real version (v1)
 
-Status: approved by Carlos, 2026-10-02. Product name: **narrator.guru**. Phases A, B and C built (branch `v1-phase-a`); C tested against a fake Creem, waiting for real test keys. Phase D is next.
+Status: approved by Carlos, 2026-10-02. Product name: **narrator.guru**. Phases A–D built (branch `v1-phase-a`). C was tested against a fake Creem and is waiting for real test keys. What's left is Carlos's part of D (VPS, domain, keys, legal details, Creem review), then E.
 
 Every ⚑ FLAG below was accepted as recommended. Answers are recorded in §10.
 
@@ -145,7 +145,7 @@ Every phase leaves the app runnable.
 **D. Launch minimum**
 - Legal pages, voice sample, FAQ lines.
 - Worker split, rate limit, 7-day retention.
-- Hetzner box, narrator.guru domain, HTTPS, backups (Carlos). Kokoro license read and recorded.
+- Hetzner box, narrator.guru domain, HTTPS, backups (Carlos). Kokoro license read and recorded. **Code side done 2026-10-02; server steps in `docs/deploy.md`.**
 - Creem store review submitted, then live keys.
 - Done when: a stranger can pay real money on the public URL.
 
@@ -224,3 +224,26 @@ Carlos picked mockup A out of four (`docs/design/index.html`, each next to the s
 - `/stats` now leads with the thesis number: how many people paid, and sales and revenue per pack.
 - Tested with a fake Creem (local server answering `/v1/checkouts`) and signed webhooks. Covered: checkout request contents, waiting page, bad signature, unpaid order, wrong product, auto-start of the waiting book, replayed webhook, unknown checkout, other event types, pack bought from the home page, another user opening the return page, Creem being down, stats. Phase B tests still pass.
 - To go live with test keys: create the three one-time products in Creem test mode (€2.99, €9.95, €24.95), set the `CREEM_*` values from `.env.example`, and add `<BASE_URL>/webhooks/creem` as the webhook URL. The webhook must be reachable from the internet, so test on the VPS or through a tunnel.
+
+## 16. Phase D notes (2026-10-02)
+
+**One free book per person** (Carlos asked for mitigation of multiple accounts). `app/abuse.py`. A new account gets no free book if any of these already had one:
+- the same mailbox: Gmail dots and `+tags` removed, googlemail = gmail; `+tags` removed for Outlook/iCloud/Proton/Fastmail and others; Yahoo `-aliases`;
+- the same browser (device cookie, now kept a year and set at sign-in);
+- 2 free books from the same network in the last 30 days (`FREE_PER_IP`; IPv6 grouped by /64).
+
+Disposable-email domains (9,199, CC0 list in `app/disposable_domains.txt`) never get one. The account still works and can buy; the price page explains why there's no free book. IPs are stored only as keyed hashes. A determined person with many real Gmail accounts, a VPN and a fresh browser still gets through; the aim is to make it tedious. A stricter next step, if `/stats` shows farming (look at the `free_denied` event): phone verification or a smaller free book. Neither is built.
+
+**Other phase D work:**
+- Rate limits: 10 uploads per network per hour (`UPLOADS_PER_HOUR`), 20 sign-in links per network per hour, 5 per email per hour.
+- Worker split: `app/worker.py`, run as `python -m app.worker`. Compose runs `web` (`RUN_WORKER=0`) and `worker` from one image; `run.sh` keeps both in one process (`RUN_WORKER=1`, default). SQLite in WAL mode. Only the worker requeues "working" books at start-up, so restarting the web app never restarts a book.
+- Retention: finished books are kept 7 days (`KEEP_HOURS=168`). The copy says "7 days".
+- `/stats` needs `STATS_PASSWORD` (HTTP Basic auth). Without it, it only opens when `BASE_URL` is localhost.
+- Legal pages `/terms`, `/privacy`, `/refunds`, linked in the footer. They are drafts written from what the app actually does, marked "Draft" until `LEGAL_OWNER` and `LEGAL_LAW` are set. **Not legal advice; have them checked.** Refund policy: failed conversions are refunded automatically; unused packs within 14 days; broken audiobooks redone or refunded.
+- Deployment: `docker-compose.prod.yml` adds Caddy (automatic HTTPS, 110 MB uploads, www redirect); the web port is bound to localhost. Backups: `python -m app.backup` (SQLite online backup, 14 daily copies), run from cron. All steps in `docs/deploy.md`.
+- **Licences:**
+  - Kokoro-82M weights and voices: Apache-2.0, commercial use allowed. Its model card says the training data included synthetic audio from commercial TTS systems; that's the model authors' risk, but worth knowing.
+  - kokoro-onnx: MIT.
+  - espeak-ng: GPL-3.0. Fine for a hosted service, because we don't distribute it; it would matter only if we shipped the software to users.
+  - Disposable-domain list: CC0.
+- Tests: 26 phase D checks with web and worker as separate processes; phase B (23) and C (22) still pass.
