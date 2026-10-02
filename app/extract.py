@@ -5,6 +5,7 @@ process: DRM, Kindle formats, scanned PDFs, empty books.
 """
 import re
 import zipfile
+from urllib.parse import unquote
 from dataclasses import dataclass
 
 import pymupdf as fitz
@@ -78,27 +79,76 @@ def _epub(path: str) -> list[Chapter]:
     base = opf_path.rsplit("/", 1)[0] + "/" if "/" in opf_path else ""
     opf = BeautifulSoup(z.read(opf_path), "xml")
     manifest = {i["id"]: i["href"] for i in opf.find_all("item")}
+    labels = _toc_labels(z, opf, base, names)
 
     chapters = []
     for ref in opf.find("spine").find_all("itemref"):
         href = manifest.get(ref["idref"])
         if not href:
             continue
-        name = base + href.split("#")[0]
+        name = _resolve(base, unquote(href.split("#")[0]))
         if name not in names:
             continue
         soup = BeautifulSoup(z.read(name), "html.parser")
-        for tag in soup(["script", "style", "nav"]):
+        for tag in soup(["head", "script", "style", "nav"]):
             tag.decompose()
         heading = soup.find(["h1", "h2", "h3"])
-        title = heading.get_text(" ", strip=True) if heading else ""
+        title = labels.get(name) or (heading.get_text(" ", strip=True) if heading else "")
         # Paragraph-ish blocks become paragraphs so narration pauses sensibly.
         for block in soup.find_all(["p", "div", "h1", "h2", "h3", "h4", "li", "br"]):
             block.insert_after("\n\n")
         text = _clean(soup.get_text())
         if text:
-            chapters.append(Chapter(title or f"Chapter {len(chapters) + 1}", text))
+            # Untitled sections stay untitled: a copyright page shouldn't be called "Chapter 2".
+            chapters.append(Chapter(title[:200], text))
     return chapters
+
+
+def _toc_labels(z: zipfile.ZipFile, opf, base: str, names: set) -> dict[str, str]:
+    """Map each content file to its first label in the book's own table of contents."""
+    items = opf.find_all("item")
+    nav = next((i for i in items if "nav" in (i.get("properties") or "").split()), None)
+    ncx = next((i for i in items if i.get("media-type") == "application/x-dtbncx+xml"), None)
+    found = {}
+    for item, kind in ((nav, "nav"), (ncx, "ncx")):
+        if not item:
+            continue
+        path = base + item["href"]
+        if path not in names:
+            continue
+        here = path.rsplit("/", 1)[0] + "/" if "/" in path else ""
+        try:
+            soup = BeautifulSoup(z.read(path), "xml" if kind == "ncx" else "html.parser")
+        except Exception:
+            continue
+        if kind == "ncx":
+            pairs = [
+                (p.find("content").get("src", ""), p.find("navLabel").get_text(" ", strip=True))
+                for p in soup.find_all("navPoint")
+                if p.find("content") and p.find("navLabel")
+            ]
+        else:
+            toc = next((n for n in soup.find_all("nav") if "toc" in (n.get("epub:type") or "")), None)
+            toc = toc or soup.find("nav")
+            pairs = [(a.get("href", ""), a.get_text(" ", strip=True)) for a in (toc.find_all("a") if toc else [])]
+        for href, label in pairs:
+            target = _resolve(here, unquote(href.split("#")[0]))
+            if target and label and target not in found:
+                found[target] = label
+        if found:
+            break
+    return found
+
+
+def _resolve(here: str, href: str) -> str:
+    parts = []
+    for p in (here + href).split("/"):
+        if p == "..":
+            if parts:
+                parts.pop()
+        elif p and p != ".":
+            parts.append(p)
+    return "/".join(parts)
 
 
 def _pdf(path: str) -> list[Chapter]:
