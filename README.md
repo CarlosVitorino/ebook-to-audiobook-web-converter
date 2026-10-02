@@ -11,4 +11,3 @@ This repository was handed off from Venture Lab. Open it in Cursor, Claude Code,
 - `build-brief.md` — the full brief
 - `AGENTS.md` — how to work on it
 - `docs/build-plan.md` — the phases
-- `docs/notes/` — the research and notes behind it

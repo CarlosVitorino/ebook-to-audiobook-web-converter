@@ -16,11 +16,10 @@ Do not build:
 
 These are defaults to start from, not rules. If you have a better way to reach the goal, use it and say why. Ask the person you are working for whenever the brief leaves something that changes the outcome.
 
-**Size of the build: First version.** The smallest product a real person can use end to end, built well enough that you can learn from their use of it.
+**Size of the build: Proof of concept.** The smallest thing that proves the idea can work at all, in days, not weeks. It does not have to be pretty or safe to ship.
 
 **Before writing code**
 - Read `build-brief.md` end to end.
-- Read `docs/notes/`: the founder's own research and notes, written before this handoff.
 - Never build anything listed under "Do not build".
 - Work in the phases of `docs/build-plan.md`, and check in with the person at the end of each one.
 
