@@ -39,6 +39,12 @@ def migrate():
                 reason TEXT NOT NULL, ref TEXT, created REAL
             );
             CREATE INDEX IF NOT EXISTS credits_user ON credits(user_id);
+            -- One row per checkout started. Only the signed webhook moves it to 'paid' and adds credits.
+            CREATE TABLE IF NOT EXISTS payments (
+                id INTEGER PRIMARY KEY, request_id TEXT UNIQUE NOT NULL, user_id INTEGER NOT NULL,
+                pack TEXT NOT NULL, books INTEGER NOT NULL, draft_id TEXT, status TEXT NOT NULL,
+                creem_order_id TEXT UNIQUE, amount_cents INTEGER, currency TEXT, created REAL, paid REAL
+            );
             CREATE TABLE IF NOT EXISTS login_tokens (
                 hash TEXT PRIMARY KEY, email TEXT NOT NULL, next TEXT, created REAL, used REAL
             );

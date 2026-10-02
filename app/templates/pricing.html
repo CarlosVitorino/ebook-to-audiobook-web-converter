@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block body %}
 <h1>{% if have == 0 %}You've used your free book{% else %}This book needs {{ needed }} books{% endif %}</h1>
-<p class="lede">"{{ job.title }}" uses {{ needed }} book{{ 's' if needed > 1 }} and you have {{ have }}. Pick a pack to convert it. No subscription, use them whenever you like.</p>
+<p class="lede">"{{ job.title }}" uses {{ needed }} book{{ 's' if needed > 1 }} and you have {{ have }}. Pick a pack and your book starts as soon as the payment goes through. No subscription.</p>
 {% with buy=True %}{% include "_prices.html" %}{% endwith %}
 <p class="small" style="margin-top:1.2rem">{% if needed > 1 %}Or <a href="/drafts/{{ job.id }}">untick some sections</a> to make it shorter. · {% endif %}<a href="/">Home</a></p>
 {% endblock %}

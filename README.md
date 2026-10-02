@@ -38,7 +38,7 @@ What you get:
 - `/signin`: Google (when configured) or an emailed sign-in link. Without a mail server the link is printed in the server log and written to `data/outbox.log`.
 - `/drafts/<id>/confirm`: the ownership checkbox; spends one book from your account (the first is free).
 - `/jobs/<id>`: the status page, which refreshes itself, and then the M4B and SRT downloads.
-- With no books left, confirming shows the pricing page. A failed conversion gives its book back, and an email goes out when a book is ready or fails. "Buy" records the click and says packs are coming soon. No money moves.
+- With no books left, confirming shows the price table. Buy goes to a Creem checkout (when `CREEM_*` is set in `.env`); the signed webhook adds the books and starts the waiting book. A failed conversion gives its book back, and an email goes out when a book is ready or fails. "Buy" records the click and says packs are coming soon. No money moves.
 - `/stats`: uploads, rejections, finished books, second-book attempts, buy clicks per pack, and measured speed. This is the thesis measurement.
 
 Accounts, Google sign-in and mail are configured in `.env` (copy `.env.example`). Other settings (environment variables): `KEEP_HOURS` (default 24), `DRAFT_HOURS` (2, unconfirmed uploads), `MAX_UPLOAD_MB` (100), `MAX_CHARS` (1,500,000), `CHARS_PER_CREDIT` (600,000, one book), `CHARS_PER_SECOND` (14.5, for the length estimate), `NARRATION_SPEED` (5, times faster than real time, for the "ready in about" estimate), `VOICE` (default voice, `af_heart`), `DATA_DIR`.

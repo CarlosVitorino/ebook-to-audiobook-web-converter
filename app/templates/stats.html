@@ -1,9 +1,15 @@
 {% extends "base.html" %}
 {% block body %}
 <h1>Stats</h1>
+<h2>Did anyone pay for book two?</h2>
+<p><strong>{{ payers }}</strong> {{ 'person has' if payers == 1 else 'people have' }} paid, from {{ checkouts }} checkout{{ 's' if checkouts != 1 }} started.</p>
+<table><tr><th>Pack</th><th class="num">Sold</th><th class="num">Revenue</th></tr>
+{% for s in sales %}<tr><td>{{ s.pack }}</td><td class="num">{{ s.n }}</td><td class="num">{{ '%.2f' | format((s.cents or 0) / 100) }} {{ s.currency }}</td></tr>{% else %}<tr><td colspan="3">none yet</td></tr>{% endfor %}
+</table>
+<h2>Events</h2>
 <table>
 <tr><th>Event</th><th>Count</th><th>People</th></tr>
-{% for k in ['upload','rejected','signup','signin','confirmed','done','failed','download','second_book_attempt','buy_click'] %}
+{% for k in ['upload','rejected','signup','signin','confirmed','done','failed','download','second_book_attempt','buy_click','paid','checkout_error','webhook_rejected','refund_created'] %}
 <tr><td>{{ k }}</td><td>{{ counts.get(k, (0,0))[0] }}</td><td>{{ counts.get(k, (0,0))[1] }}</td></tr>
 {% endfor %}
 </table>

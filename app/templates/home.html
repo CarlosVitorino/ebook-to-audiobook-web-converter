@@ -24,7 +24,7 @@
 
 <h2 id="prices">Prices</h2>
 <p>Your first book is free. After that, buy a pack. No subscription.</p>
-{% include "_prices.html" %}
+{% with buy=user is not none %}{% include "_prices.html" %}{% endwith %}
 
 <h2 id="sample">Listen to a sample</h2>
 <svg class="waves" viewBox="0 0 120 40" aria-hidden="true">{% for h in [4,9,14,7,17,11,5,13,18,8,12,6,15,9,4] %}<rect x="{{ loop.index0 * 8 }}" y="{{ 20 - h }}" width="4" height="{{ 2 * h }}" rx="2" fill="currentColor"/>{% endfor %}</svg>

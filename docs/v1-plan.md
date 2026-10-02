@@ -1,6 +1,6 @@
 # Plan: first real version (v1)
 
-Status: approved by Carlos, 2026-10-02. Product name: **narrator.guru**. Phases A and B built (branch `v1-phase-a`). Phase C (Creem) is next.
+Status: approved by Carlos, 2026-10-02. Product name: **narrator.guru**. Phases A, B and C built (branch `v1-phase-a`); C tested against a fake Creem, waiting for real test keys. Phase D is next.
 
 Every ⚑ FLAG below was accepted as recommended. Answers are recorded in §10.
 
@@ -138,7 +138,7 @@ Every phase leaves the app runnable.
 - Done when: a new Google user and a new email user each get exactly one free book, and an email arrives when it's done.
 
 **C. Payments (Creem, test mode)**
-- Products, checkout session, verified idempotent webhook, credits ledger, refund-on-failure.
+- Products, checkout session, verified idempotent webhook, credits ledger, refund-on-failure. **Built 2026-10-02; needs a run with real Creem test keys.**
 - The fake door is removed. `/stats` shows paid packs and revenue.
 - Done when: in test mode, buying a pack after the free book adds credits and the queued draft starts automatically. A replayed webhook adds nothing.
 
@@ -212,3 +212,15 @@ The brief's list stands, as updated: no voice cloning, no mobile app, no DRM han
 ## 14. Look: "Bookshelf" (Carlos, 2026-10-02)
 
 Carlos picked mockup A out of four (`docs/design/index.html`, each next to the site that inspired it). It's based on standardebooks.org: slate header and footer bars, a shelf of coloured book spines drawn in CSS above the landing headline, cream cards for forms, brick-red buttons with a bottom edge, gold small-caps section headings, and gold for the best-value pack (5 books). Still dark only. The other three mockups (Overcast, Sublime Text, Daring Fireball) stay in `docs/design/` for reference.
+
+## 15. Phase C notes (2026-10-02)
+
+- `app/payments.py`. "Buy" saves a `pending` row in `payments` (with a random `request_id`, the pack, and the book the user was trying to convert, if any), then calls Creem `POST /v1/checkouts` (`x-api-key`; `product_id`, `request_id`, `customer.email`, `success_url=<BASE_URL>/paid/<request_id>`, `metadata`) and sends the user to the `checkout_url`.
+- `POST /webhooks/creem` checks `creem-signature` (HMAC-SHA256 hex of the raw body, per docs.creem.io/code/webhooks). On `checkout.completed` with `order.status == "paid"` and the product matching the pack we saved, it marks the payment paid and adds the pack's credits in one transaction, once per order. Creem retries up to 5 times, so replays are no-ops. Who gets the credits comes from our own row, not from Creem's metadata.
+- If the payment carried a waiting book, it starts straight away (`app/credits.py:start_draft`, shared with the confirm page). The user already ticked the ownership box on the confirm step that led to the price table.
+- `/paid/<request_id>` refreshes every 3 seconds until the webhook has landed, then sends the user to their book or shows "N books added".
+- `refund.created` is only logged (it appears in `/stats` events); credits are not taken back automatically. Fine at this volume; a human looks at refunds.
+- Without `CREEM_*` settings, Buy keeps the PoC behaviour: it logs the click and says payments open soon.
+- `/stats` now leads with the thesis number: how many people paid, and sales and revenue per pack.
+- Tested with a fake Creem (local server answering `/v1/checkouts`) and signed webhooks. Covered: checkout request contents, waiting page, bad signature, unpaid order, wrong product, auto-start of the waiting book, replayed webhook, unknown checkout, other event types, pack bought from the home page, another user opening the return page, Creem being down, stats. Phase B tests still pass.
+- To go live with test keys: create the three one-time products in Creem test mode (€2.99, €9.95, €24.95), set the `CREEM_*` values from `.env.example`, and add `<BASE_URL>/webhooks/creem` as the webhook URL. The webhook must be reachable from the internet, so test on the VPS or through a tunnel.

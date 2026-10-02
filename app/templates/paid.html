@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block head %}{% if state == 'waiting' %}<meta http-equiv="refresh" content="3">{% endif %}{% endblock %}
+{% block body %}
+{% if state == 'waiting' %}
+<h1>Confirming your payment…</h1>
+<p class="lede">This usually takes a few seconds. The page updates itself.</p>
+{% elif state == 'paid' %}
+<h1>Thank you!</h1>
+<p class="lede">{{ pay.books }} book{{ 's' if pay.books > 1 }} added. You have {{ balance }} book{{ 's' if balance != 1 }} now.</p>
+{% if job and job.status == 'draft' %}
+<p><a class="button" href="/drafts/{{ job.id }}/confirm">Convert your book</a></p>
+{% else %}
+<p><a class="button" href="/">Upload a book</a></p>
+{% endif %}
+{% elif state == 'error' %}
+<h1>We couldn't open the checkout</h1>
+<p class="lede">Nothing was charged. Please try again in a minute.</p>
+<p><a href="/">Home</a></p>
+{% else %}
+<h1>Payment not found</h1>
+<p class="lede">Sign in with the account you paid with to see this page.</p>
+<p><a href="/signin">Sign in</a></p>
+{% endif %}
+{% endblock %}

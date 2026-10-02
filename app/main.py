@@ -18,7 +18,8 @@ from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 
-from . import accounts, mail
+from . import accounts, mail, payments
+from .credits import start_draft, wake
 from . import sections as S
 from .db import DATA, db, log, migrate
 from .extract import RejectedBook, book_title, check_extension, extract
@@ -36,6 +37,7 @@ app.add_middleware(
 )
 app.mount("/static", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "static")), name="static")
 app.include_router(accounts.router)
+app.include_router(payments.router)
 
 
 def folder(job_id: str) -> str:
@@ -208,30 +210,15 @@ def confirm_go(request: Request, job_id: str, owns: bool = Form(False)):
     if not owns:
         return confirm_page(request, job, user, "Please confirm you own this DRM-free book and it is for personal use.", 400)
 
-    secs = S.load(folder(job_id))
-    chars = S.included_chars(secs)
-    needed = S.credits(chars)
-    with db() as con:
-        # One transaction for check-and-spend, so a double click can't spend twice or overdraw.
-        con.execute("BEGIN IMMEDIATE")
-        have = con.execute("SELECT COALESCE(SUM(delta),0) FROM credits WHERE user_id=?", (user["id"],)).fetchone()[0]
-        if have >= needed:
-            started = con.execute(
-                "UPDATE jobs SET email=?, user_id=?, chars=?, credits_used=?, status='queued', created=? "
-                "WHERE id=? AND status='draft'",
-                (user["email"], user["id"], chars, needed, time.time(), job_id),
-            ).rowcount
-            if started:
-                con.execute(
-                    "INSERT INTO credits (user_id, delta, reason, ref, created) VALUES (?,?,'conversion',?,?)",
-                    (user["id"], -needed, job_id, time.time()),
-                )
-    if have < needed:
+    started, have, needed = start_draft(user["id"], user["email"], job_id)
+    if not started:
+        if have >= needed:  # confirmed twice, or the draft went away in between
+            return RedirectResponse(f"/jobs/{job_id}", status_code=303)
         log(user["email"], "second_book_attempt", f"{job_id} needs {needed} has {have}")
-        return page(request, "pricing.html", {"job": job, "needed": needed, "have": have}, 402)
+        return page(request, "pricing.html", {"job": job, "needed": needed, "have": have, "draft": job_id}, 402)
+    secs = S.load(folder(job_id))
     skipped = sum(1 for s in secs if not s["include"])
-    log(user["email"], "confirmed", f"{job_id} {chars} chars voice={job['voice']} skipped={skipped}/{len(secs)} credits={needed}")
-    wake.set()
+    log(user["email"], "confirmed", f"{job_id} {S.included_chars(secs)} chars voice={job['voice']} skipped={skipped}/{len(secs)} credits={needed}")
     return RedirectResponse(f"/jobs/{job_id}", status_code=303)
 
 
@@ -273,14 +260,6 @@ def download(job_id: str, kind: str):
     return FileResponse(path, filename=f"{safe}.{kind}")
 
 
-@app.post("/buy", response_class=HTMLResponse)
-def buy(request: Request, pack: str = Form(...)):
-    user = current_user(request)
-    log(user["email"] if user else "", "buy_click", pack)
-    chosen = next((p for p in PACKS if p["id"] == pack), PACKS[0])
-    return page(request, "thanks.html", {"pack": chosen})
-
-
 @app.get("/stats", response_class=HTMLResponse)
 def stats(request: Request):
     with db() as con:
@@ -304,14 +283,18 @@ def stats(request: Request):
             "FROM jobs WHERE status IN ('done','expired') AND audio_seconds IS NOT NULL"
         ).fetchone()
         users = con.execute("SELECT COUNT(*) FROM users").fetchone()[0]
+        sales = con.execute(
+            "SELECT pack, COUNT(*) n, SUM(amount_cents) cents, currency FROM payments WHERE status='paid' GROUP BY pack, currency"
+        ).fetchall()
+        payers = con.execute("SELECT COUNT(DISTINCT user_id) FROM payments WHERE status='paid'").fetchone()[0]
+        started = con.execute("SELECT COUNT(*) FROM payments").fetchone()[0]
     return page(request, "stats.html", {
         "counts": counts, "clicks": clicks, "signins": signins, "voices": voices, "speed": speed, "users": users,
+        "sales": sales, "payers": payers, "checkouts": started,
     })
 
 
 # ---------- background worker ----------
-
-wake = threading.Event()
 
 
 def run_job(job):
