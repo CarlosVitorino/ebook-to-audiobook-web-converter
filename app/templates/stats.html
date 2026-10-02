@@ -3,10 +3,11 @@
 <h1>Stats</h1>
 <table>
 <tr><th>Event</th><th>Count</th><th>People</th></tr>
-{% for k in ['upload','rejected','confirmed','done','failed','download','second_book_attempt','buy_click'] %}
+{% for k in ['upload','rejected','signup','signin','confirmed','done','failed','download','second_book_attempt','buy_click'] %}
 <tr><td>{{ k }}</td><td>{{ counts.get(k, (0,0))[0] }}</td><td>{{ counts.get(k, (0,0))[1] }}</td></tr>
 {% endfor %}
 </table>
+<p>{{ users }} accounts. Sign-ups by method: {% for s in signins %}{{ s.detail }} {{ s.n }}{{ ', ' if not loop.last }}{% else %}none yet{% endfor %}.</p>
 <h2>Buy clicks by pack</h2>
 <table>{% for c in clicks %}<tr><td>{{ c.detail }}</td><td>{{ c.n }}</td></tr>{% else %}<tr><td>none yet</td></tr>{% endfor %}</table>
 <h2>Voices</h2>

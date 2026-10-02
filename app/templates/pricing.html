@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block body %}
-<h1>You've used your free book</h1>
-<p class="lede">Each email gets one free conversion. To convert this book, pick a pack. No subscription, use them whenever you like.</p>
+<h1>{% if have == 0 %}You've used your free book{% else %}This book needs {{ needed }} books{% endif %}</h1>
+<p class="lede">"{{ job.title }}" uses {{ needed }} book{{ 's' if needed > 1 }} and you have {{ have }}. Pick a pack to convert it. No subscription, use them whenever you like.</p>
 {% include "_packs.html" %}
-<p class="small" style="margin-top:1.5rem"><a href="/jobs/{{ first_job }}">Go back to your free book</a> · <a href="/">Home</a></p>
+<p class="small" style="margin-top:1.5rem">{% if needed > 1 %}Or <a href="/drafts/{{ job.id }}">untick some sections</a> to make it shorter. · {% endif %}<a href="/">Home</a></p>
 {% endblock %}

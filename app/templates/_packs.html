@@ -5,7 +5,6 @@
     <div class="price">{{ p.price }}</div>
     <div class="small">{{ p.note }}</div>
     <input type="hidden" name="pack" value="{{ p.id }}">
-    <input type="hidden" name="email" value="{{ email or (job.email if job else '') }}">
     <button type="submit">Buy {{ p.name }}</button>
   </form>
 {% endfor %}

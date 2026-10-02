@@ -10,6 +10,13 @@
   <button type="submit">Next</button>
 </form>
 
+{% if books %}
+<h2>Your books</h2>
+<ul class="books">
+{% for b in books %}<li><a href="/jobs/{{ b.id }}">{{ b.title }}</a> <span class="small">· {{ {'queued':'waiting','working':'narrating','done':'ready','failed':'failed'}[b.status] }}</span></li>{% endfor %}
+</ul>
+{% endif %}
+
 <h2>Your first book is free</h2>
 <p>After that, buy a pack. No subscription.</p>
 <div class="packs">

@@ -1,18 +1,16 @@
 {% extends "base.html" %}
 {% block body %}
-<p class="steps">1 Upload · 2 Choose what to narrate · <b>3 Confirm</b></p>
+<p class="steps">1 Upload · 2 Choose · 3 Sign in · <b>4 Confirm</b></p>
 <h1>{{ job.title }}</h1>
 <p class="lede">{{ count }} section{{ 's' if count != 1 }}, about {{ seconds | duration }} of audio, read by {{ voice.name }} ({{ voice.accent }} {{ voice.gender }}). <a href="/drafts/{{ job.id }}">Change</a></p>
 
 <form class="card" method="post">
   {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
-  <label for="email">Email</label>
-  <input id="email" name="email" type="email" value="{{ email or '' }}" autocomplete="email" required>
-  <p class="small">We use it only to track your free book. No newsletter.</p>
-
+  <p style="margin-top:0">This uses <strong>{{ credits }} book{{ 's' if credits > 1 }}</strong>{% if credits > 1 %}, because it's longer than about 10 hours{% endif %}. You have {{ balance }}.</p>
   <label class="check"><input type="checkbox" name="owns" value="true" required>
     <span>I own this book, it is DRM-free, and the audiobook is for my personal use only.</span></label>
 
   <button type="submit">Convert my book</button>
+  <p class="small">We'll email {{ user.email }} when it's ready.</p>
 </form>
 {% endblock %}

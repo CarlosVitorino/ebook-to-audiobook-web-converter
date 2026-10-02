@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block body %}
-<p class="steps">1 Upload · <b>2 Choose what to narrate</b> · 3 Confirm</p>
+<p class="steps">1 Upload · <b>2 Choose</b> · {% if not user %}3 Sign in · {% endif %}{{ 3 if user else 4 }} Confirm</p>
 <h1>{{ job.title }}</h1>
 <p class="lede">We unticked the parts most people skip, like the copyright page, contents and acknowledgements. Tick or untick anything. Use "Edit text" to cut a paragraph.</p>
 

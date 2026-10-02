@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>Check your email</h1>
+<p class="lede">We sent a sign-in link to <strong>{{ email }}</strong>. Open it in this browser to carry on where you left off. It works for 20 minutes.</p>
+{% if dev %}<p class="small">Development mode: no mail server is set, so the link is in the server log and in <code>data/outbox.log</code>.</p>{% endif %}
+<p class="small">Nothing arrived? Check spam, or <a href="/signin">try again</a>.</p>
+{% endblock %}
