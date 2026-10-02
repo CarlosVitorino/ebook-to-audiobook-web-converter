@@ -1,0 +1,6 @@
+{# A shelf of book spines, drawn in CSS. height, width, colour. #}
+<div class="spines" aria-hidden="true">
+{%- for h, w, c in [(120,26,"#8c3b2e"),(140,18,"#c9a45c"),(110,30,"#3f5f4a"),(150,22,"#6b4f3a"),(128,16,"#b5654a"),(146,28,"#2f4b63"),
+  (118,20,"#d8c9a3"),(136,24,"#7a2f3a"),(150,18,"#4f6b3a"),(124,30,"#a8823e"),(142,22,"#344a5e"),(114,18,"#93412f"),
+  (132,26,"#5d6f5a"),(148,20,"#c08a4a"),(120,24,"#46323a")] %}<i style="height:{{ h }}px;width:{{ w }}px;background:{{ c }}"></i>{% endfor -%}
+</div>

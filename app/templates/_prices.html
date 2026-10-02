@@ -3,7 +3,7 @@
   <tbody>
   {% if not buy %}<tr class="free"><td>First book</td><td class="num">free</td><td class="num">–</td></tr>{% endif %}
   {% for p in packs %}
-    <tr>
+    <tr class="{{ 'best' if p.id == 'five' }}">
       <td>{{ p.name }}</td><td class="num">{{ p.price }}</td><td class="num">{{ p.per_book }}</td>
       {% if buy %}<td class="num"><form method="post" action="/buy" style="margin:0"><input type="hidden" name="pack" value="{{ p.id }}"><button class="buy">Buy</button></form></td>{% endif %}
     </tr>

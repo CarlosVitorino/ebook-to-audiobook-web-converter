@@ -1,15 +1,20 @@
 {% extends "base.html" %}
-{% block body %}
+{% block hero %}
+<section class="hero"><div class="wrap">
+{% include "_spines.html" %}
 <h1>Turn your ebook into an audiobook</h1>
 <p class="lede">Upload an EPUB or PDF you own. Get back one M4B audiobook file, with chapters and captions.</p>
 
 <form class="box" method="post" action="/upload" enctype="multipart/form-data">
   {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
-  <label for="book">Your book <span class="small">(EPUB or PDF, up to {{ max_mb }} MB)</span></label>
+  <label for="book">Your book <span class="small">EPUB or PDF, up to {{ max_mb }} MB</span></label>
   <input id="book" name="book" type="file" accept=".epub,.pdf,application/epub+zip,application/pdf" required>
-  <div class="actions"><button type="submit">Next</button></div>
+  <div class="actions"><button type="submit">Next &rarr;</button><span class="small">{% if user %}You have {{ balance }} book{{ 's' if balance != 1 }} left.{% else %}Your first book is free.{% endif %}</span></div>
 </form>
+</div></section>
+{% endblock %}
 
+{% block body %}
 {% if books %}
 <h2>Your books</h2>
 <ul class="books">
@@ -17,15 +22,16 @@
 </ul>
 {% endif %}
 
-<h2>Prices</h2>
+<h2 id="prices">Prices</h2>
 <p>Your first book is free. After that, buy a pack. No subscription.</p>
 {% include "_prices.html" %}
 
-<h2>Listen to a sample</h2>
+<h2 id="sample">Listen to a sample</h2>
+<svg class="waves" viewBox="0 0 120 40" aria-hidden="true">{% for h in [4,9,14,7,17,11,5,13,18,8,12,6,15,9,4] %}<rect x="{{ loop.index0 * 8 }}" y="{{ 20 - h }}" width="4" height="{{ 2 * h }}" rx="2" fill="currentColor"/>{% endfor %}</svg>
 <audio controls preload="none" src="/static/voices/{{ sample }}.m4a" style="width:100%"></audio>
 <p class="small">One of six English voices. You choose before converting.</p>
 
-<h2>Questions</h2>
+<h2 id="questions">Questions</h2>
 <dl class="faq">
   <dt>Which books work?</dt>
   <dd>DRM-free EPUB and text PDF files, in English. Kindle files, DRM-protected books and scanned PDFs are rejected.</dd>

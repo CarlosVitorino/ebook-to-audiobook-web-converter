@@ -208,3 +208,7 @@ The brief's list stands, as updated: no voice cloning, no mobile app, no DRM han
 - New prices (above). Pack ids are `one`, `five`, `fifteen`; each pack carries `books`, the credits it adds, ready for phase C.
 - Processing time: Carlos's VPS narrates about 4–5× faster than real time. The landing page says "about 40 minutes for The Great Gatsby's 4 hours". The confirm page estimates with `NARRATION_SPEED` (default 5). The job page's countdown uses measured progress, so it's right on any machine.
 - Layout reworked: still dark, but plain and a bit old-fashioned. Serif headings, thin rules, square buttons (one solid button per page, outlined for the rest), prices in a table instead of cards.
+
+## 14. Look: "Bookshelf" (Carlos, 2026-10-02)
+
+Carlos picked mockup A out of four (`docs/design/index.html`, each next to the site that inspired it). It's based on standardebooks.org: slate header and footer bars, a shelf of coloured book spines drawn in CSS above the landing headline, cream cards for forms, brick-red buttons with a bottom edge, gold small-caps section headings, and gold for the best-value pack (5 books). Still dark only. The other three mockups (Overcast, Sublime Text, Daring Fireball) stay in `docs/design/` for reference.
