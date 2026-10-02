@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>Stats</h1>
+<table>
+<tr><th>Event</th><th>Count</th><th>People</th></tr>
+{% for k in ['upload','rejected','done','failed','download','second_book_attempt','buy_click'] %}
+<tr><td>{{ k }}</td><td>{{ counts.get(k, (0,0))[0] }}</td><td>{{ counts.get(k, (0,0))[1] }}</td></tr>
+{% endfor %}
+</table>
+<h2>Buy clicks by pack</h2>
+<table>{% for c in clicks %}<tr><td>{{ c.detail }}</td><td>{{ c.n }}</td></tr>{% else %}<tr><td>none yet</td></tr>{% endfor %}</table>
+<h2>Speed</h2>
+{% if speed.n %}
+<p>{{ speed.n }} books, {{ (speed.audio / 3600) | round(2) }} h of audio in {{ (speed.wall / 3600) | round(2) }} h of processing: {{ (speed.audio / speed.wall) | round(2) }}× realtime.</p>
+{% else %}<p>No finished books yet.</p>{% endif %}
+{% endblock %}

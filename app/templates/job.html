@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block head %}{% if job.status in ('queued', 'working') %}<meta http-equiv="refresh" content="10">{% endif %}{% endblock %}
+{% block body %}
+<h1>{{ job.title }}</h1>
+{% if job.status == 'queued' %}
+  <p class="lede">Waiting in line{% if ahead %} behind {{ ahead }} other book{{ 's' if ahead > 1 }}{% endif %}. Bookmark this page and come back; it updates itself.</p>
+{% elif job.status == 'working' %}
+  <p class="lede">Narrating your book. Bookmark this page and come back; it updates itself.</p>
+  <progress value="{{ job.progress }}" max="1" aria-label="Progress"></progress>
+  <p>{{ (job.progress * 100) | round | int }}% done{% if eta %}, about {% if eta > 5400 %}{{ (eta / 3600) | round(1) }} hours{% else %}{{ (eta / 60) | round | int }} minutes{% endif %} left{% endif %}.</p>
+{% elif job.status == 'done' %}
+  <p class="lede">Your audiobook is ready: {% if job.audio_seconds >= 3600 %}{{ (job.audio_seconds / 3600) | round(1) }} hours{% else %}{{ (job.audio_seconds / 60) | round | int }} minutes{% endif %} of audio.</p>
+  <a class="button" href="/jobs/{{ job.id }}/download/m4b">Download audiobook (M4B)</a>
+  <a class="button" href="/jobs/{{ job.id }}/download/srt">Download captions (SRT)</a>
+  <p class="small">The captions are also inside the M4B. Files are deleted {{ keep | int }} hours after conversion.</p>
+  <div class="card">
+    <h2 style="margin-top:0">Got another book?</h2>
+    <p>Your first book was free. Packs start at €9 per book, no subscription.</p>
+    {% include "_packs.html" %}
+  </div>
+{% elif job.status == 'failed' %}
+  <p class="error">Sorry, something went wrong narrating this book. It doesn't count as your free book; <a href="/">try again</a>.</p>
+{% else %}
+  <p class="lede">This audiobook has been deleted. Files are kept for {{ keep | int }} hours.</p>
+{% endif %}
+{% endblock %}

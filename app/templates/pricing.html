@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>You've used your free book</h1>
+<p class="lede">Each email gets one free conversion. To convert this book, pick a pack. No subscription, use them whenever you like.</p>
+{% include "_packs.html" %}
+<p class="small" style="margin-top:1.5rem"><a href="/jobs/{{ first_job }}">Go back to your free book</a> · <a href="/">Home</a></p>
+{% endblock %}

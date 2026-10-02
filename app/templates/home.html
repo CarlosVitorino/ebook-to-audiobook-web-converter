@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>Turn your ebook into an audiobook</h1>
+<p class="lede">Upload an EPUB or PDF you own. Get back one M4B audiobook of the whole book, with chapters and synced captions. <strong>Your first book is free.</strong></p>
+
+<form class="card" method="post" action="/convert" enctype="multipart/form-data">
+  {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+  <label for="book">Your book (EPUB or PDF, up to {{ max_mb }} MB)</label>
+  <input id="book" name="book" type="file" accept=".epub,.pdf,application/epub+zip,application/pdf" required>
+
+  <label for="email">Email</label>
+  <input id="email" name="email" type="email" value="{{ email or '' }}" autocomplete="email" required>
+  <p class="small">We use it only to track your free book. No account, no newsletter.</p>
+
+  <label class="check"><input type="checkbox" name="owns" value="true" required>
+    <span>I own this book, it is DRM-free, and the audiobook is for my personal use only.</span></label>
+
+  <button type="submit">Convert my book</button>
+</form>
+
+<h2>After your free book</h2>
+<p>Buy a pack when you need more. No subscription.</p>
+<div class="packs">
+{% for p in packs %}
+  <div class="pack"><div>{{ p.name }}</div><div class="price">{{ p.price }}</div><div class="small">{{ p.note }}</div></div>
+{% endfor %}
+</div>
+
+<p class="small" style="margin-top:2rem">We only accept DRM-free books. Kindle files, DRM-protected EPUBs and scanned PDFs are rejected. Your upload and audiobook are deleted 24 hours after conversion. Narration uses the open Kokoro voice model.</p>
+{% endblock %}
