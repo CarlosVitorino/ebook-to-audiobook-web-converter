@@ -35,11 +35,12 @@ What you get:
 
 - `/`: the landing page: upload, prices, a voice sample.
 - `/drafts/<id>`: choose what to narrate (front and back matter start unticked, any section's text can be edited) and pick one of six voices.
-- `/drafts/<id>/confirm`: email and the ownership checkbox.
+- `/signin`: Google (when configured) or an emailed sign-in link. Without a mail server the link is printed in the server log and written to `data/outbox.log`.
+- `/drafts/<id>/confirm`: the ownership checkbox; spends one book from your account (the first is free).
 - `/jobs/<id>`: the status page, which refreshes itself, and then the M4B and SRT downloads.
-- A second book from the same email shows the pricing page. "Buy" records the click and says packs are coming soon. No money moves.
+- With no books left, confirming shows the pricing page. A failed conversion gives its book back, and an email goes out when a book is ready or fails. "Buy" records the click and says packs are coming soon. No money moves.
 - `/stats`: uploads, rejections, finished books, second-book attempts, buy clicks per pack, and measured speed. This is the thesis measurement.
 
-Settings (environment variables): `KEEP_HOURS` (default 24), `DRAFT_HOURS` (2, unconfirmed uploads), `MAX_UPLOAD_MB` (100), `MAX_CHARS` (1,500,000), `CHARS_PER_CREDIT` (600,000, one book), `CHARS_PER_SECOND` (14.5, for the length estimate), `VOICE` (default voice, `af_heart`), `DATA_DIR`.
+Accounts, Google sign-in and mail are configured in `.env` (copy `.env.example`). Other settings (environment variables): `KEEP_HOURS` (default 24), `DRAFT_HOURS` (2, unconfirmed uploads), `MAX_UPLOAD_MB` (100), `MAX_CHARS` (1,500,000), `CHARS_PER_CREDIT` (600,000, one book), `CHARS_PER_SECOND` (14.5, for the length estimate), `VOICE` (default voice, `af_heart`), `DATA_DIR`.
 
 Speed: on a 4-core CPU, narration runs about 2.6× faster than real time, so a 10-hour novel takes roughly 4 hours.

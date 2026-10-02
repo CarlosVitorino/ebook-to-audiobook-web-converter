@@ -5,4 +5,15 @@ services:
       - "8000:8000"
     volumes:
       - ./data:/data
+    # Values come from a .env file next to this one (see .env.example). All are optional locally.
+    environment:
+      BASE_URL: ${BASE_URL:-http://localhost:8000}
+      SECRET_KEY: ${SECRET_KEY:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:-narrator.guru <hello@narrator.guru>}
     restart: unless-stopped

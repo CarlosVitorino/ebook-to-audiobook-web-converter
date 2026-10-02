@@ -1,6 +1,6 @@
 # Plan: first real version (v1)
 
-Status: approved by Carlos, 2026-10-02. Product name: **narrator.guru**. Phase A built (branch `v1-phase-a`), waiting for Carlos's check-in. Phase B is next.
+Status: approved by Carlos, 2026-10-02. Product name: **narrator.guru**. Phases A and B built (branch `v1-phase-a`). Phase C (Creem) is next.
 
 Every ⚑ FLAG below was accepted as recommended. Answers are recorded in §10.
 
@@ -132,7 +132,7 @@ Every phase leaves the app runnable.
 - Done when: a sample EPUB and PDF go through the new flow and the M4B leaves out the unticked sections.
 
 **B. Accounts + email**
-- Users table, sessions, Google OAuth, magic link.
+- Users table, sessions, Google OAuth, magic link. **Done 2026-10-02.**
 - Draft claimed on sign-in. Free-book gate moves from typed email to account.
 - "Your book is ready" email. Header with credits. Unexpired-jobs list.
 - Done when: a new Google user and a new email user each get exactly one free book, and an email arrives when it's done.
@@ -191,3 +191,14 @@ The brief's list stands, as updated: no voice cloning, no mobile app, no DRM han
 - Six voices (af_heart default, af_bella, am_michael, am_fenrir, bf_emma, bm_george). British voices use `en-gb` phonemes. Samples: `python scripts/make_voice_samples.py` → `app/static/voices/*.m4a` (committed, ~800 KB total).
 - Length estimate: `CHARS_PER_SECOND` (14.5). Frankenstein estimates 8 h 22 min, close to commercial recordings. `/stats` now shows the measured rate so it can be tuned.
 - Known gap: some EPUBs (Project Gutenberg, for one) pack several chapters into one file, so one section holds several chapters. Splitting by table-of-contents anchors would fix it; not done.
+
+## 12. Phase B notes (2026-10-02)
+
+- Code: `app/accounts.py` (sign-in routes), `app/db.py` (schema), `app/mail.py` (SMTP or console), `app/web.py` (templates, session user, balance).
+- Google sign-in is a plain OAuth code flow with httpx, not Authlib: two HTTP calls, no extra library. It needs `GOOGLE_CLIENT_ID/SECRET` and `<BASE_URL>/signin/google/callback` as a redirect URI. Without them the Google button is hidden.
+- The magic link is valid 20 minutes, works once, and is stored hashed. Max 5 links per email per hour. Opening the link shows a "Sign in" button rather than signing in at once, because mail scanners open links and would use them up.
+- The same email via Google or link is one account. A user who already got a free book under the PoC's typed-email gate doesn't get a second one.
+- The credits ledger (planned for phase C) landed now: +1 free at sign-up, minus the book's credits on confirm (check-and-spend in one `BEGIN IMMEDIATE` transaction), and a refund when a conversion fails. Phase C only adds purchase rows.
+- Mail: plain SMTP (`SMTP_HOST` etc. in `.env.example`), so any provider works. Without it, mail goes to the log and `data/outbox.log`.
+- Still open (phase D): `/stats` is public; job pages are reachable by anyone with the link (12 random hex characters), so emailed links work on any device.
+- Tests run (scratch scripts, not committed): magic-link flow, draft claim, double-submit, second-book gate, link reuse, open redirect, rate limit, PoC-email rule, refund on failure, ready/failure emails; Google flow with Google's endpoints mocked.
