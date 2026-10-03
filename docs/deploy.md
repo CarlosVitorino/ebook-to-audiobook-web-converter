@@ -49,10 +49,10 @@ Logs: `docker compose logs -f web worker`.
 ## 5. Payments (Creem)
 
 1. Test mode first. In Creem (Test Mode on), create three **one-time** products: 1 book €2.99, 5 books €9.95, 15 books €24.95.
-2. Developers → API key → `CREEM_API_KEY`. Product IDs → `CREEM_PRODUCT_ONE/FIVE/FIFTEEN`. Keep `CREEM_API_BASE=https://test-api.creem.io`.
+2. Developers → API key → `CREEM_API_KEY`. Product IDs → `CREEM_PRODUCT_ONE/FIVE/FIFTEEN`. The app talks to the test API because test keys start with `creem_test_`.
 3. Developers → Webhooks → add `https://narrator.guru/webhooks/creem` → copy its secret into `CREEM_WEBHOOK_SECRET`.
 4. Restart, buy a pack with Creem's test card, check `/stats`.
-5. Going live: submit the store for Creem's review (it checks the site, the product description and the Terms/Privacy/Refunds pages). After approval, repeat 1–3 in live mode and set `CREEM_API_BASE=https://api.creem.io`.
+5. Going live: submit the store for Creem's review (it checks the site, the product description and the Terms/Privacy/Refunds pages). After approval, repeat 1–3 in live mode: live API key, the three live product IDs and a live webhook with its own secret. All five values change; the API address follows the key.
 
 ## 6. Measure the speed
 

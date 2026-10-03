@@ -27,8 +27,14 @@ from .web import BASE_URL, PACKS, current_user, page
 
 CREEM_API_KEY = os.environ.get("CREEM_API_KEY", "")
 CREEM_WEBHOOK_SECRET = os.environ.get("CREEM_WEBHOOK_SECRET", "")
-# Test mode by default; set https://api.creem.io with live keys.
-CREEM_API_BASE = os.environ.get("CREEM_API_BASE", "https://test-api.creem.io").rstrip("/")
+# The key says which Creem it belongs to: test keys start with creem_test_. A live key sent to
+# the test API (or the other way round) is rejected, so the key wins over CREEM_API_BASE.
+TEST_MODE = CREEM_API_KEY.startswith("creem_test_")
+CREEM_API_BASE = "https://test-api.creem.io" if TEST_MODE else "https://api.creem.io"
+if os.environ.get("CREEM_API_BASE", CREEM_API_BASE).rstrip("/") != CREEM_API_BASE and CREEM_API_KEY:
+    print(f"CREEM_API_BASE ignored: this is a {'test' if TEST_MODE else 'live'} key, using {CREEM_API_BASE}", flush=True)
+# A checkout still pending after this long probably means the webhook isn't reaching us.
+SLOW_SECONDS = 120
 # One Creem product per pack: CREEM_PRODUCT_ONE, CREEM_PRODUCT_FIVE, CREEM_PRODUCT_FIFTEEN.
 PRODUCTS = {p["id"]: os.environ.get(f"CREEM_PRODUCT_{p['id'].upper()}", "") for p in PACKS}
 
@@ -37,6 +43,12 @@ router = APIRouter()
 
 def enabled() -> bool:
     return bool(CREEM_API_KEY and CREEM_WEBHOOK_SECRET and all(PRODUCTS.values()))
+
+
+@router.get("/buy", include_in_schema=False)
+def buy_get():
+    # Reached by reloading or going back to the checkout redirect; the Buy buttons POST.
+    return RedirectResponse("/#prices", status_code=303)
 
 
 @router.post("/buy", response_class=HTMLResponse)
@@ -69,10 +81,13 @@ def buy(request: Request, pack: str = Form(...), draft: str = Form("")):
         resp.raise_for_status()
         url = resp.json()["checkout_url"]
     except (httpx.HTTPError, KeyError, ValueError) as e:
-        log(user["email"], "checkout_error", f"{pack} {e}")
+        detail = f"HTTP {e.response.status_code} {e.response.text[:300]}" if isinstance(e, httpx.HTTPStatusError) else str(e)
+        log(user["email"], "checkout_error", f"{pack} {detail}")
+        print(f"Creem checkout failed for {pack}: {detail}", flush=True)
         with db() as con:
             con.execute("UPDATE payments SET status='error' WHERE request_id=?", (request_id,))
-        return page(request, "paid.html", {"state": "error"}, 502)
+        # Not a 5xx: Cloudflare replaces those with its own "Bad gateway" page and ours is never seen.
+        return page(request, "paid.html", {"state": "error", "pack": chosen, "draft": draft})
     return RedirectResponse(url, status_code=303)
 
 
@@ -137,10 +152,12 @@ def paid(request: Request, request_id: str):
     user = current_user(request)
     with db() as con:
         pay = con.execute("SELECT * FROM payments WHERE request_id=?", (request_id,)).fetchone()
-        job = con.execute("SELECT id, status FROM jobs WHERE id=?", (pay["draft_id"],)).fetchone() if pay and pay["draft_id"] else None
+        job = con.execute("SELECT id, status, title FROM jobs WHERE id=?", (pay["draft_id"],)).fetchone() if pay and pay["draft_id"] else None
     if not pay or not user or pay["user_id"] != user["id"]:
         return page(request, "paid.html", {"state": "unknown"}, 404)
     if pay["status"] == "paid" and job and job["status"] != "draft":
         return RedirectResponse(f"/jobs/{job['id']}", status_code=303)
     state = "paid" if pay["status"] == "paid" else "waiting"
-    return page(request, "paid.html", {"state": state, "pay": pay, "job": job})
+    pack = next((p for p in PACKS if p["id"] == pay["pack"]), None)
+    slow = state == "waiting" and time.time() - pay["created"] > SLOW_SECONDS
+    return page(request, "paid.html", {"state": state, "pay": pay, "pack": pack, "job": job, "slow": slow})

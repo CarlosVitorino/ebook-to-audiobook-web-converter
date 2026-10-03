@@ -24,7 +24,7 @@ from . import sections as S
 from .db import DATA, db, log, migrate
 from .extract import RejectedBook, book_title, check_extension, extract
 from .narrate import VOICE, VOICE_IDS, VOICES
-from .web import BASE_URL, COOKIE, DESCRIPTION, DRAFT_HOURS, MAX_MB, PACKS, TAGLINE, current_user, faq, page, secret_key
+from .web import BASE_URL, CONTACT, COOKIE, DESCRIPTION, DRAFT_HOURS, MAX_MB, PACKS, TAGLINE, current_user, faq, page, secret_key
 
 MAX_CHARS = int(os.environ.get("MAX_CHARS", "1500000"))
 UPLOADS_PER_HOUR = int(os.environ.get("UPLOADS_PER_HOUR", "10"))
@@ -266,7 +266,7 @@ def download(job_id: str, kind: str):
 # Legal pages. Fill the LEGAL_* settings before launch; until then the pages say they're drafts.
 LEGAL = {
     "owner": os.environ.get("LEGAL_OWNER") or "[legal name of the business]",
-    "contact": os.environ.get("LEGAL_CONTACT") or "hello@narrator.guru",
+    "contact": CONTACT,
     "law": os.environ.get("LEGAL_LAW") or "[country]",
     "email_provider": os.environ.get("LEGAL_EMAIL_PROVIDER") or "Our email provider",
     "host": os.environ.get("LEGAL_HOST") or "Hetzner",

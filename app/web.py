@@ -13,6 +13,8 @@ DRAFT_HOURS = float(os.environ.get("DRAFT_HOURS", "2"))  # unconfirmed uploads
 MAX_MB = int(os.environ.get("MAX_UPLOAD_MB", "100"))
 # How many times faster than real time the server narrates, for the "ready in about" estimate.
 NARRATION_SPEED = float(os.environ.get("NARRATION_SPEED", "5"))
+# Where people write about payments, refunds and anything else. Also shown on the legal pages.
+CONTACT = os.environ.get("LEGAL_CONTACT") or "hello@narrator.guru"
 COOKIE = "nid"  # anonymous owner of drafts, from before sign-in
 
 # Prices decided by Carlos, 2026-10-02. "books" is how many credits the pack adds.
@@ -124,7 +126,7 @@ def page(request: Request, name: str, ctx: dict, status_code: int = 200, owner: 
     resp = templates.TemplateResponse(request, name, {
         "packs": PACKS, "max_mb": MAX_MB, "keep": KEEP_HOURS, "speed": NARRATION_SPEED,
         "base_url": BASE_URL, "canonical": BASE_URL + request.url.path, "noindex": name not in PUBLIC,
-        "tagline": TAGLINE, "description": DESCRIPTION,
+        "tagline": TAGLINE, "description": DESCRIPTION, "contact": CONTACT,
         **({"faq": faq(), "structured": structured_data()} if name == "home.html" else {}),
         "user": user, "balance": balance(user["id"]) if user else 0, **ctx,
     }, status_code=status_code)
