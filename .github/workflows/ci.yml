@@ -1,0 +1,51 @@
+# Two checks, in rough order of how often they catch something: the image build,
+# which is the artefact we actually deploy, and a syntax pass over the app, which
+# is all we have until there are tests.
+#
+# The repo is private, so these minutes are metered. The build stays cheap because
+# `COPY app app` is the last layer: an app-only change reuses the cached apt, pip
+# and model-download layers above it.
+name: CI
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A newer push to the same branch makes the older run pointless.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compile:
+    name: Python syntax
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11" # match the Dockerfile, not the newest release
+
+      - run: python -m compileall -q app
+
+  image:
+    name: Docker build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      # Built, not pushed. The point is to find a broken Dockerfile here rather
+      # than on the server mid-deploy. The cache matters: without it every run
+      # re-downloads ~310 MB of Kokoro model files.
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

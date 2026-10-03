@@ -11,6 +11,7 @@ import subprocess
 from typing import Callable
 
 import numpy as np
+import onnxruntime as rt
 import soundfile as sf
 from kokoro_onnx import EspeakConfig, Kokoro
 
@@ -28,6 +29,8 @@ VOICES = [
 ]
 VOICE_IDS = {v["id"] for v in VOICES}
 MODEL_DIR = os.environ.get("MODEL_DIR", os.path.join(os.path.dirname(__file__), "..", "models"))
+# 0 lets ONNX Runtime size its own thread pool; set it when the container has a CPU limit.
+ONNX_THREADS = int(os.environ.get("ONNX_THREADS", "0"))
 SR = 24000
 
 SENTENCE_GAP = 0.12
@@ -61,11 +64,19 @@ def _espeak() -> EspeakConfig:
 def kokoro() -> Kokoro:
     global _kokoro
     if _kokoro is None:
-        _kokoro = Kokoro(
-            os.path.join(MODEL_DIR, "kokoro-v1.0.onnx"),
-            os.path.join(MODEL_DIR, "voices-v1.0.bin"),
-            espeak_config=_espeak(),
-        )
+        model = os.path.join(MODEL_DIR, "kokoro-v1.0.onnx")
+        voices = os.path.join(MODEL_DIR, "voices-v1.0.bin")
+        if ONNX_THREADS:
+            # ORT reads the host's core count, not our cgroup quota, so a CPU limit
+            # leaves it oversubscribed and throttled instead of merely capped.
+            opts = rt.SessionOptions()
+            opts.intra_op_num_threads = ONNX_THREADS
+            session = rt.InferenceSession(
+                model, sess_options=opts, providers=["CPUExecutionProvider"]
+            )
+            _kokoro = Kokoro.from_session(session, voices, espeak_config=_espeak())
+        else:
+            _kokoro = Kokoro(model, voices, espeak_config=_espeak())
     return _kokoro
 
 
