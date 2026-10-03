@@ -2,7 +2,7 @@
 # which is the artefact we actually deploy, and a syntax pass over the app, which
 # is all we have until there are tests.
 #
-# The repo is private, so these minutes are metered. The build stays cheap because
+# The repo is public, so the minutes are free. The build stays cheap anyway because
 # `COPY app app` is the last layer: an app-only change reuses the cached apt, pip
 # and model-download layers above it.
 name: CI
@@ -47,5 +47,24 @@ jobs:
         with:
           context: .
           push: false
+          load: true
+          tags: narrator:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      # A Dockerfile that builds can still produce an image that cannot serve a
+      # request. Every setting is optional locally, so this needs no secrets.
+      - name: Boot the image and fetch a page
+        run: |
+          docker run -d --name narrator-ci -e RUN_WORKER=0 -p 8000:8000 narrator:ci
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/ || true)
+            [ "$code" = "200" ] && echo "up after ${i}s" && exit 0
+            sleep 1
+          done
+          echo "never served a 200; last code: ${code:-none}"
+          docker logs narrator-ci
+          exit 1
+
+      - if: always()
+        run: docker rm -f narrator-ci
