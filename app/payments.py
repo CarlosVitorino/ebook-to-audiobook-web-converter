@@ -25,18 +25,21 @@ from .credits import start_draft
 from .db import db, log
 from .web import BASE_URL, PACKS, current_user, page
 
-CREEM_API_KEY = os.environ.get("CREEM_API_KEY", "")
-CREEM_WEBHOOK_SECRET = os.environ.get("CREEM_WEBHOOK_SECRET", "")
+# Stripped: a trailing space or \r from an .env edited on Windows makes Creem answer "Invalid API Key".
+CREEM_API_KEY = os.environ.get("CREEM_API_KEY", "").strip()
+CREEM_WEBHOOK_SECRET = os.environ.get("CREEM_WEBHOOK_SECRET", "").strip()
 # The key says which Creem it belongs to: test keys start with creem_test_. A live key sent to
 # the test API (or the other way round) is rejected, so the key wins over CREEM_API_BASE.
 TEST_MODE = CREEM_API_KEY.startswith("creem_test_")
 CREEM_API_BASE = "https://test-api.creem.io" if TEST_MODE else "https://api.creem.io"
 if os.environ.get("CREEM_API_BASE", CREEM_API_BASE).rstrip("/") != CREEM_API_BASE and CREEM_API_KEY:
     print(f"CREEM_API_BASE ignored: this is a {'test' if TEST_MODE else 'live'} key, using {CREEM_API_BASE}", flush=True)
+if CREEM_API_KEY:
+    print(f"Creem {'test' if TEST_MODE else 'live'} mode: {CREEM_API_BASE}, key {CREEM_API_KEY[:12]}… ({len(CREEM_API_KEY)} chars)", flush=True)
 # A checkout still pending after this long probably means the webhook isn't reaching us.
 SLOW_SECONDS = 120
 # One Creem product per pack: CREEM_PRODUCT_ONE, CREEM_PRODUCT_FIVE, CREEM_PRODUCT_FIFTEEN.
-PRODUCTS = {p["id"]: os.environ.get(f"CREEM_PRODUCT_{p['id'].upper()}", "") for p in PACKS}
+PRODUCTS = {p["id"]: os.environ.get(f"CREEM_PRODUCT_{p['id'].upper()}", "").strip() for p in PACKS}
 
 router = APIRouter()
 
