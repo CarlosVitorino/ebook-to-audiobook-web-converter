@@ -267,7 +267,7 @@ def download(job_id: str, kind: str):
 LEGAL = {
     "owner": os.environ.get("LEGAL_OWNER") or "[legal name of the business]",
     "contact": CONTACT,
-    "law": os.environ.get("LEGAL_LAW") or "[country]",
+    "law": os.environ.get("LEGAL_LAW") or "Germany",
     "email_provider": os.environ.get("LEGAL_EMAIL_PROVIDER") or "Our email provider",
     "host": os.environ.get("LEGAL_HOST") or "Hetzner",
     "updated": "4 October 2026",

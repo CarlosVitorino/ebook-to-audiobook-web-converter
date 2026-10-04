@@ -31,7 +31,7 @@ Edit `.env`. For launch, at least:
 | `GOOGLE_CLIENT_ID/SECRET` | Google Cloud Console → OAuth client (Web). Redirect URI: `https://narrator.guru/signin/google/callback` |
 | `SMTP_*`, `MAIL_FROM` | from your email provider (Resend, Postmark…). Set up SPF/DKIM for the domain as the provider explains, or sign-in emails land in spam |
 | `CREEM_*` | see step 5 |
-| `LEGAL_OWNER`, `LEGAL_LAW` | your legal name/company and country; the legal pages say "Draft" until both are set, and Creem rejects the account review while they do |
+| `LEGAL_OWNER`, `LEGAL_LAW` | your legal name/company and country (`LEGAL_LAW` defaults to Germany); the legal pages say "Draft" while either is a placeholder, and Creem rejects the account review while they do |
 | `NARRATION_SPEED` | measured in step 6 |
 
 ## 4. Start
