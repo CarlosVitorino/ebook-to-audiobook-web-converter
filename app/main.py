@@ -270,7 +270,7 @@ LEGAL = {
     "law": os.environ.get("LEGAL_LAW") or "[country]",
     "email_provider": os.environ.get("LEGAL_EMAIL_PROVIDER") or "Our email provider",
     "host": os.environ.get("LEGAL_HOST") or "Hetzner",
-    "updated": "2 October 2026",
+    "updated": "4 October 2026",
 }
 
 
