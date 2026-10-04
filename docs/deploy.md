@@ -86,3 +86,20 @@ The site already serves `robots.txt`, `sitemap.xml`, `llms.txt` (for AI assistan
 - [ ] `/stats` asks for the password
 - [ ] Legal pages show your name and country, no "Draft"
 - [ ] Creem test purchase adds books; then live mode after review
+
+## 10. Automatic deploys
+
+A push to `main` that passes CI runs `scripts/deploy.sh` on the server over SSH: it fast-forwards to exactly the commit CI tested and runs the command from step 4. `.env` stays on the server. Every deploy rebuilds the image both services share, so, as in step 4, a book in progress restarts from the beginning.
+
+The key GitHub holds can only run that script, and the script only deploys a commit already on `origin/main`.
+
+Once:
+
+1. On your machine: `ssh-keygen -t ed25519 -N '' -C narrator-ci -f narrator-ci`.
+2. On the server, in `~/.ssh/authorized_keys` of the user that owns the checkout (root today), add:
+   `restrict,command="/root/narrator/scripts/deploy.sh" ssh-ed25519 AAAA… narrator-ci`
+   `restrict` removes the terminal and forwarding, and `command=` means the key can run nothing else.
+3. `ssh-keyscan -t ed25519 <server>` and compare the fingerprint with `ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub` on the server.
+4. GitHub → Settings → Secrets and variables → Actions: `DEPLOY_SSH_KEY` (the private key, then delete it locally), `DEPLOY_TARGET` (`root@<server>`), `DEPLOY_KNOWN_HOSTS` (the line from step 3).
+
+Until those secrets exist, the deploy step warns and skips.
