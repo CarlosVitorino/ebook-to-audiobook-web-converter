@@ -1,33 +1,53 @@
 {% extends "base.html" %}
-{% block title %}{% if state == 'error' %}Checkout unavailable{% elif state == 'paid' %}Payment received{% else %}Payment{% endif %} · narrator.guru{% endblock %}
-{% block head %}{% if state == 'waiting' %}<meta http-equiv="refresh" content="{{ 15 if slow else 3 }}">{% endif %}{% endblock %}
+{% block title %}{% if state == 'error' %}Checkout unavailable{% elif state == 'paid' %}Payment received{% else
+%}Payment{% endif %} · narrator.guru{% endblock %}
+{% block head %}{% if state == 'waiting' %}
+<meta http-equiv="refresh" content="{{ 15 if slow else 3 }}">{% endif %}{% endblock %}
 {% block body %}
 {% if state == 'waiting' %}
 <p class="steps">Payment</p>
 <h1>{% if slow %}Still confirming your payment{% else %}Confirming your payment…{% endif %}</h1>
 {% if slow %}
-<p class="lede">Creem is taking longer than usual to tell us about it. Your books are added as soon as it does, and this page keeps checking.</p>
+<p class="lede">Creem is taking longer than usual to tell us about it. Your books are added as soon as it does, and this
+  page keeps checking.</p>
 {% else %}
 <p class="lede">This usually takes a few seconds. The page updates itself, so there's no need to reload.</p>
-<svg class="waves" viewBox="0 0 120 40" aria-hidden="true"><g fill="currentColor"><rect x="2" y="16" width="6" height="8" rx="2"/><rect x="14" y="10" width="6" height="20" rx="2"/><rect x="26" y="4" width="6" height="32" rx="2"/><rect x="38" y="12" width="6" height="16" rx="2"/><rect x="50" y="7" width="6" height="26" rx="2"/><rect x="62" y="14" width="6" height="12" rx="2"/><rect x="74" y="9" width="6" height="22" rx="2"/><rect x="86" y="15" width="6" height="10" rx="2"/></g></svg>
+<svg class="waves" viewBox="0 0 120 40" aria-hidden="true">
+  <g fill="currentColor">
+    <rect x="2" y="16" width="6" height="8" rx="2" />
+    <rect x="14" y="10" width="6" height="20" rx="2" />
+    <rect x="26" y="4" width="6" height="32" rx="2" />
+    <rect x="38" y="12" width="6" height="16" rx="2" />
+    <rect x="50" y="7" width="6" height="26" rx="2" />
+    <rect x="62" y="14" width="6" height="12" rx="2" />
+    <rect x="74" y="9" width="6" height="22" rx="2" />
+    <rect x="86" y="15" width="6" height="10" rx="2" />
+  </g>
+</svg>
 {% endif %}
 {% if pack %}
 <div class="box">
   <p style="margin:0"><strong>{{ pack.name }}</strong> pack · {{ pack.price }}</p>
-  <p class="small" style="margin:.3rem 0 0">Creem, our payment provider, emails your receipt.{% if job %} "{{ job.title }}" starts by itself once the books are in.{% endif %}</p>
+  <p class="small" style="margin:.3rem 0 0">Creem, our payment provider, emails your receipt.{% if job %} "{{ job.title
+    }}" starts by itself once the books are in.{% endif %}</p>
 </div>
 {% endif %}
 {% if slow %}
-<p class="small">If you were charged and nothing happens within a few minutes, write to <a href="mailto:{{ contact }}?subject=Payment%20{{ pay.request_id }}">{{ contact }}</a> and we'll sort it out. Your reference: <code>{{ pay.request_id }}</code>.</p>
+<p class="small">If you were charged and nothing happens within a few minutes, write to <!--email_off--><a
+    href="mailto:{{ contact }}?subject=Payment%20{{ pay.request_id }}">{{ contact }}</a><!--/email_off--> and we'll sort
+  it out. Your reference: <code>{{ pay.request_id }}</code>.</p>
 {% endif %}
 
 {% elif state == 'paid' %}
 <p class="steps">Payment</p>
 <h1>Thank you!</h1>
-<p class="lede">{{ pay.books }} book{{ 's' if pay.books > 1 }} added to your account. You have {{ balance }} book{{ 's' if balance != 1 }} now, and they don't expire.</p>
+<p class="lede">{{ pay.books }} book{{ 's' if pay.books > 1 }} added to your account. You have {{ balance }} book{{ 's'
+  if balance != 1 }} now, and they don't expire.</p>
 <div class="box">
-  <p style="margin:0"><strong>{{ pack.name if pack else pay.books ~ ' books' }}</strong> pack{% if pack %} · {{ pack.price }}{% endif %}</p>
-  <p class="small" style="margin:.3rem 0 0">Creem, our payment provider, emails your receipt (VAT included). Unused packs can be refunded within 14 days, see <a href="/refunds">Refunds</a>.</p>
+  <p style="margin:0"><strong>{{ pack.name if pack else pay.books ~ ' books' }}</strong> pack{% if pack %} · {{
+    pack.price }}{% endif %}</p>
+  <p class="small" style="margin:.3rem 0 0">Creem, our payment provider, emails your receipt (VAT included). Unused
+    packs can be refunded within 14 days, see <a href="/refunds">Refunds</a>.</p>
 </div>
 {% if job and job.status == 'draft' %}
 <p><a class="button" href="/drafts/{{ job.id }}/confirm">Convert your book</a></p>
@@ -38,24 +58,29 @@
 {% elif state == 'error' %}
 <p class="steps">Payment</p>
 <h1>We couldn't open the checkout</h1>
-<p class="lede">Nothing was charged. Our payment provider didn't answer as expected, which is usually over in a minute.</p>
+<p class="lede">Nothing was charged. Our payment provider didn't answer as expected, which is usually over in a minute.
+</p>
 {% if pack %}
 <div class="box">
   <form method="post" action="/buy" style="margin:0">
-    <input type="hidden" name="pack" value="{{ pack.id }}">{% if draft %}<input type="hidden" name="draft" value="{{ draft }}">{% endif %}
+    <input type="hidden" name="pack" value="{{ pack.id }}">{% if draft %}<input type="hidden" name="draft"
+      value="{{ draft }}">{% endif %}
     <p style="margin:0"><strong>{{ pack.name }}</strong> pack · {{ pack.price }}</p>
-    <div class="actions"><button>Try again</button><a href="{{ '/drafts/' ~ draft ~ '/confirm' if draft else '/' }}">Back</a></div>
+    <div class="actions"><button>Try again</button><a
+        href="{{ '/drafts/' ~ draft ~ '/confirm' if draft else '/' }}">Back</a></div>
   </form>
 </div>
 {% else %}
 <p><a class="button" href="/">Home</a></p>
 {% endif %}
-<p class="small">Still not working? Write to <a href="mailto:{{ contact }}">{{ contact }}</a> and we'll help.</p>
+<p class="small">Still not working? Write to <!--email_off--><a href="mailto:{{ contact }}">{{ contact
+    }}</a><!--/email_off--> and we'll help.</p>
 
 {% else %}
 <h1>Payment not found</h1>
 {% if user %}
-<p class="lede">This payment belongs to another account, or the link is wrong. If you paid and your books haven't arrived, write to <a href="mailto:{{ contact }}">{{ contact }}</a>.</p>
+<p class="lede">This payment belongs to another account, or the link is wrong. If you paid and your books haven't
+  arrived, write to <!--email_off--><a href="mailto:{{ contact }}">{{ contact }}</a><!--/email_off-->.</p>
 <p><a class="button" href="/">Home</a></p>
 {% else %}
 <p class="lede">Sign in with the account you paid with to see this page.</p>

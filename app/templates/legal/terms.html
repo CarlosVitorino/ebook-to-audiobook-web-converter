@@ -1,55 +1,73 @@
 {% extends "base.html" %}
 {% block title %}Terms · narrator.guru{% endblock %}
-{% block description %}The terms for using narrator.guru: convert ebooks you own, DRM-free, for personal use. Free first book, packs that don't expire.{% endblock %}
+{% block description %}The terms for using narrator.guru: convert ebooks you own, DRM-free, for personal use. Free first
+book, packs that don't expire.{% endblock %}
 {% block body %}
 <h1>Terms of service</h1>
 <p class="small">Last updated {{ updated }}. {{ draft_note }}</p>
 
-<p>These terms apply when you use narrator.guru. By uploading a book, creating an account or buying a pack you agree to them, and to our <a href="/privacy">Privacy policy</a> and <a href="/refunds">Refund policy</a>.</p>
+<p>These terms apply when you use narrator.guru. By uploading a book, creating an account or buying a pack you agree to
+  them, and to our <a href="/privacy">Privacy policy</a> and <a href="/refunds">Refund policy</a>.</p>
 
 <h2>Who we are</h2>
-<p>narrator.guru is run by {{ owner }}. Support: <a href="mailto:{{ contact }}">{{ contact }}</a>. We answer within 3 business days.</p>
+<p>narrator.guru is run by {{ owner }}. Support: <!--email_off--><a href="mailto:{{ contact }}">{{ contact
+    }}</a><!--/email_off-->. We answer within 3 business days.</p>
 
 <h2>What the service does</h2>
-<p>You upload an EPUB or PDF ebook, choose which parts to narrate and a voice, and we produce one M4B audiobook file with chapters and captions, read by a computer voice (the open Kokoro model). We don't keep a library: your upload is deleted once the audiobook is made, and the audiobook {{ keep | keep_text }} after it's ready.</p>
+<p>You upload an EPUB or PDF ebook, choose which parts to narrate and a voice, and we produce one M4B audiobook file
+  with chapters and captions, read by a computer voice (the open Kokoro model). We don't keep a library: your upload is
+  deleted once the audiobook is made, and the audiobook {{ keep | keep_text }} after it's ready.</p>
 
 <h2>Your books</h2>
 <ul>
   <li>You may only upload books you legally own, that are free of DRM, and only for your own personal use.</li>
-  <li>You must not share, sell or publish the audiobooks we make for you, unless you hold the rights to the book (for example, you are its author or publisher).</li>
+  <li>You must not share, sell or publish the audiobooks we make for you, unless you hold the rights to the book (for
+    example, you are its author or publisher).</li>
   <li>We don't remove or get around DRM, and we reject files that have it.</li>
   <li>You keep all rights in your book. You give us permission to process it only to make your audiobook.</li>
 </ul>
 
 <h2>Your account</h2>
 <ul>
-  <li>You must be at least 16 to use the service. You sign in with your email address or Google; keep access to that email safe.</li>
-  <li>You must not use the service to break the law, upload malware, overload or attack it, or get around its limits.</li>
-  <li>We may suspend or close an account that breaks these terms. If we close an account that did nothing wrong, we refund the books left in it.</li>
+  <li>You must be at least 16 to use the service. You sign in with your email address or Google; keep access to that
+    email safe.</li>
+  <li>You must not use the service to break the law, upload malware, overload or attack it, or get around its limits.
+  </li>
+  <li>We may suspend or close an account that breaks these terms. If we close an account that did nothing wrong, we
+    refund the books left in it.</li>
   <li>You can ask us to delete your account at any time by writing to us.</li>
 </ul>
 
 <h2>Prices and payment</h2>
 <ul>
-  <li>Your first book is free. After that you buy packs of books: {% for p in packs %}{{ p.name }} for {{ p.price }}{{ ", " if not loop.last }}{% endfor %}. Prices are in euros and include VAT where it applies.</li>
+  <li>Your first book is free. After that you buy packs of books: {% for p in packs %}{{ p.name }} for {{ p.price }}{{
+    ", " if not loop.last }}{% endfor %}. Prices are in euros and include VAT where it applies.</li>
   <li>Packs are one-time purchases. There is no subscription and nothing renews.</li>
-  <li>Our order process is conducted by our online reseller Creem (creem.io). Creem is the merchant of record for all our orders: it processes the payment, handles VAT and sales tax, issues your receipt, and handles payment questions and refunds together with us. Creem's own terms also apply to the purchase.</li>
+  <li>Our order process is conducted by our online reseller Creem (creem.io). Creem is the merchant of record for all
+    our orders: it processes the payment, handles VAT and sales tax, issues your receipt, and handles payment questions
+    and refunds together with us. Creem's own terms also apply to the purchase.</li>
 </ul>
 
 <h2>Free book and packs</h2>
 <ul>
-  <li>Each person gets one free book. We may refuse a free book when it looks like the same person already had one (for example, a second account from the same browser or network, or a disposable email address). Paying always works.</li>
+  <li>Each person gets one free book. We may refuse a free book when it looks like the same person already had one (for
+    example, a second account from the same browser or network, or a disposable email address). Paying always works.
+  </li>
   <li>A pack adds books to your account. One book covers up to about 10 hours of audio; longer books use two.</li>
   <li>Books in your account don't expire.</li>
   <li>If a conversion fails, the book it used is given back to your account automatically.</li>
 </ul>
 
 <h2>Quality</h2>
-<p>Narration is automatic. It is usually very good but can mispronounce names, read footnotes or page headers aloud, or stumble on unusual layouts. The service is provided as is. If a conversion is clearly broken, write to us and we'll put it right or refund it (see <a href="/refunds">Refunds</a>).</p>
+<p>Narration is automatic. It is usually very good but can mispronounce names, read footnotes or page headers aloud, or
+  stumble on unusual layouts. The service is provided as is. If a conversion is clearly broken, write to us and we'll
+  put it right or refund it (see <a href="/refunds">Refunds</a>).</p>
 
 <h2>Liability</h2>
-<p>To the extent the law allows, our total liability to you is limited to what you paid us in the 12 months before the claim. Nothing here limits rights you have as a consumer that can't be limited by contract.</p>
+<p>To the extent the law allows, our total liability to you is limited to what you paid us in the 12 months before the
+  claim. Nothing here limits rights you have as a consumer that can't be limited by contract.</p>
 
 <h2>Changes and law</h2>
-<p>We may update these terms; the date above shows when. These terms are governed by the laws of {{ law }}. If you are a consumer living elsewhere in the EU, you keep the protection of the mandatory consumer laws of your own country.</p>
+<p>We may update these terms; the date above shows when. These terms are governed by the laws of {{ law }}. If you are a
+  consumer living elsewhere in the EU, you keep the protection of the mandatory consumer laws of your own country.</p>
 {% endblock %}

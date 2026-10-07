@@ -1,152 +1,657 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="color-scheme" content="dark">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{% block title %}narrator.guru{% endblock %}</title>
-<meta name="description" content="{% block description %}{{ description }}{% endblock %}">
-{% if noindex %}<meta name="robots" content="noindex, nofollow">
-{% else %}<link rel="canonical" href="{{ canonical }}">
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="narrator.guru">
-<meta property="og:title" content="{{ self.title() }}">
-<meta property="og:description" content="{{ self.description() }}">
-<meta property="og:url" content="{{ canonical }}">
-<meta property="og:image" content="{{ base_url }}/static/og.png">
-<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="narrator.guru: turn your ebook into an audiobook. First book free.">
-<meta property="og:locale" content="en_US">
-<meta name="twitter:card" content="summary_large_image">
-{% endif %}
-<link rel="icon" href="/favicon.ico" sizes="48x48">
-<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<link rel="manifest" href="/site.webmanifest">
-<meta name="theme-color" content="#36404b">
-{% block head %}{% endblock %}
-<style>
-  /* "Bookshelf" (chosen by Carlos, 2026-10-02, after standardebooks.org): dark only, slate bars,
+  <meta charset="utf-8">
+  <meta name="color-scheme" content="dark">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}narrator.guru{% endblock %}</title>
+  <meta name="description" content="{% block description %}{{ description }}{% endblock %}">
+  {% if noindex %}
+  <meta name="robots" content="noindex, nofollow">
+  {% else %}
+  <link rel="canonical" href="{{ canonical }}">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="narrator.guru">
+  <meta property="og:title" content="{{ self.title() }}">
+  <meta property="og:description" content="{{ self.description() }}">
+  <meta property="og:url" content="{{ canonical }}">
+  <meta property="og:image" content="{{ base_url }}/static/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="narrator.guru: turn your ebook into an audiobook. First book free.">
+  <meta property="og:locale" content="en_US">
+  <meta name="twitter:card" content="summary_large_image">
+  {% endif %}
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#36404b">
+  {% block head %}{% endblock %}
+  <style>
+    /* "Bookshelf" (chosen by Carlos, 2026-10-02, after standardebooks.org): dark only, slate bars,
      cream cards for forms, brick-red buttons, gold small-caps headings. Mockups in docs/design/. */
-  :root {
-    color-scheme:dark;
-    --bg:#1c1f24; --fg:#ece6da; --muted:#a79e8f; --line:#2f343b; --rule:#3a3f47;
-    --slate:#36404b; --slate-edge:#2a323b; --gold:#e3b866;
-    --cream:#ece6da; --cream-ink:#2a241e; --cream-edge:#c9bfae; --cream-dark:#e2dacb;
-    --brick:#9b3b2b; --brick-dark:#6e2519; --bad:#f08a7a;
-    --head: "Trebuchet MS", "Gill Sans", "Segoe UI", sans-serif;
-  }
-  * { box-sizing:border-box; }
-  body { display:flex; flex-direction:column; min-height:100vh; margin:0; font:17px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; color:var(--fg); background:var(--bg); }
-  .wrap { max-width:40rem; margin:0 auto; padding:0 1.1rem; }
-  main.wrap { flex:1; width:100%; padding-bottom:2.5rem; }
-  h1, h2 { font-family:var(--head); }
-  h1 { font-weight:800; font-size:2.1rem; line-height:1.15; margin:1.8rem 0 .6rem; text-shadow:0 2px 0 #000; }
-  h2 { font-weight:800; font-size:1.15rem; text-transform:uppercase; letter-spacing:.05em; color:var(--gold);
-       margin:2.4rem 0 .7rem; padding-bottom:.3rem; border-bottom:2px solid var(--rule); }
-  p { margin:.6rem 0; }
-  a { color:var(--fg); text-decoration:underline; text-decoration-color:#6b6357; text-underline-offset:.2em; }
-  a:hover { text-decoration-color:var(--gold); }
-  .lede { color:#bdb4a5; font-size:1.05rem; }
-  .small { font-size:.88rem; color:var(--muted); }
-  .error { color:var(--bad); font-weight:600; }
+    :root {
+      color-scheme: dark;
+      --bg: #1c1f24;
+      --fg: #ece6da;
+      --muted: #a79e8f;
+      --line: #2f343b;
+      --rule: #3a3f47;
+      --slate: #36404b;
+      --slate-edge: #2a323b;
+      --gold: #e3b866;
+      --cream: #ece6da;
+      --cream-ink: #2a241e;
+      --cream-edge: #c9bfae;
+      --cream-dark: #e2dacb;
+      --brick: #9b3b2b;
+      --brick-dark: #6e2519;
+      --bad: #f08a7a;
+      --head: "Trebuchet MS", "Gill Sans", "Segoe UI", sans-serif;
+    }
 
-  /* slate header and footer bars */
-  .top { background:var(--slate); box-shadow:0 2px 0 var(--slate-edge); padding:.9rem 0; }
-  .top .wrap, footer .wrap { max-width:56rem; display:flex; flex-wrap:wrap; gap:.4rem 1.2rem; align-items:center; justify-content:space-between; }
-  .brand { display:flex; align-items:center; gap:.5rem; font:800 1.3rem/1 var(--head); letter-spacing:.02em; text-transform:uppercase; text-decoration:none; color:var(--fg); }
-  .brand b { color:var(--gold); } .brand svg { width:26px; height:26px; }
-  .nav { display:flex; flex-wrap:wrap; align-items:center; gap:.3rem 1rem; margin:0;
-         font:700 .78rem var(--head); text-transform:uppercase; letter-spacing:.06em; }
-  .nav a { text-decoration:none; } .nav a:hover { color:var(--gold); }
-  .nav .who { color:#c4ccd4; text-transform:none; letter-spacing:0; font-weight:400; font-size:.85rem; }
-  footer { background:var(--slate); color:#aeb6bf; font-size:.85rem; padding:1.1rem 0; margin-top:2rem; }
+    * {
+      box-sizing: border-box;
+    }
 
-  /* landing hero: the shelf */
-  .hero { width:100%; background:linear-gradient(#2b2520, var(--bg)); padding-bottom:2.2rem; border-bottom:1px solid #333; }
-  .hero h1, .hero .lede { text-align:center; }
-  .spines { display:flex; align-items:flex-end; justify-content:center; gap:3px; height:150px; padding-top:12px; overflow:hidden; border-bottom:6px solid #5a4330; }
-  .spines i { display:block; flex:none; border-radius:2px 2px 0 0; box-shadow:inset -4px 0 0 rgba(0,0,0,.18), inset 0 12px 0 rgba(255,255,255,.06); }
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      margin: 0;
+      font: 17px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
+      color: var(--fg);
+      background: var(--bg);
+    }
 
-  /* cream cards hold the forms */
-  .box { background:var(--cream); color:var(--cream-ink); border-radius:4px; padding:1.2rem 1.3rem; margin:1.3rem 0; box-shadow:0 6px 0 #0e1013; }
-  .box a { color:var(--cream-ink); text-decoration-color:#a3967f; }
-  .box .small { color:#6d6253; } .box .error { color:#a12a1a; }
-  label { display:block; font-weight:700; margin:.1rem 0 .45rem; }
-  label .small { font-weight:400; margin-left:.3rem; }
-  input[type=email], input[type=file] { width:100%; font:inherit; color:var(--cream-ink); background:#fff; border:1px solid var(--cream-edge); border-radius:3px; padding:.45rem .6rem; }
-  input[type=file] { padding:.35rem; }
-  input:focus-visible, textarea:focus-visible, button:focus-visible, a:focus-visible { outline:2px solid var(--gold); outline-offset:2px; }
-  .box :focus-visible { outline-color:var(--brick); }
-  input[type=checkbox], input[type=radio] { accent-color:var(--brick); width:1rem; height:1rem; }
-  .check { display:flex; gap:.6rem; align-items:flex-start; font-weight:400; margin:.8rem 0; }
-  .check input { margin-top:.3rem; flex:none; }
+    .wrap {
+      max-width: 40rem;
+      margin: 0 auto;
+      padding: 0 1.1rem;
+    }
 
-  /* buttons: brick red for the one thing to do; cream-grey for everything else */
-  button, .button { display:inline-block; font:inherit; font-size:1rem; font-weight:700; line-height:1.2; cursor:pointer; text-decoration:none;
-    color:#fff8ee; background:var(--brick); border:0; border-bottom:3px solid var(--brick-dark); border-radius:4px; padding:.6rem 1.4rem; }
-  button:hover, .button:hover { background:#ad4432; }
-  button:active, .button:active { border-bottom-width:1px; margin-top:2px; }
-  .secondary, input[type=file]::file-selector-button {
-    font:inherit; font-weight:500; color:var(--cream-ink); background:var(--cream-dark); border:1px solid #b9ad98; border-radius:3px; cursor:pointer; }
-  .secondary { padding:.55rem 1.2rem; } .secondary:hover { background:#d8cfbd; }
-  input[type=file]::file-selector-button { margin-right:.7rem; padding:.3rem .8rem; }
-  .box hr { border:0; border-top:1px solid var(--cream-edge); }
-  .actions { margin-top:1rem; display:flex; flex-wrap:wrap; gap:.6rem 1rem; align-items:center; }
-  button.link { background:none; border:0; padding:0; margin:0; color:inherit; font:inherit; text-decoration:underline; text-underline-offset:.2em; cursor:pointer; }
-  button.link:hover { background:none; color:var(--gold); }
-  .buy { font-size:.85rem; padding:.3rem .9rem; border-bottom-width:2px; }
+    main.wrap {
+      flex: 1;
+      width: 100%;
+      padding-bottom: 2.5rem;
+    }
 
-  /* tables */
-  table { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
-  th, td { text-align:left; vertical-align:top; padding:.55rem .5rem; border-bottom:1px solid var(--line); }
-  th { font:700 .75rem var(--head); text-transform:uppercase; letter-spacing:.06em; color:#9c9384; border-bottom:2px solid var(--rule); }
-  td.num, th.num { text-align:right; }
-  tr.free td { color:#9c9384; } tr.best td { color:var(--gold); font-weight:700; }
+    h1,
+    h2 {
+      font-family: var(--head);
+    }
 
-  /* step 2 */
-  .steps { font:700 .75rem var(--head); text-transform:uppercase; letter-spacing:.06em; color:#7f776b; margin:1.4rem 0 0; }
-  .steps b { color:var(--gold); }
-  .total { position:sticky; top:0; z-index:1; background:var(--bg); padding:.6rem 0; border-bottom:2px solid var(--rule); font-weight:700; color:var(--gold); }
-  .sections, .voices, .books { list-style:none; padding:0; margin:0 0 1rem; }
-  .sections li, .voices li, .books li { border-bottom:1px solid var(--line); padding:.6rem 0; }
-  .row { display:flex; gap:.7rem; align-items:baseline; }
-  .row > input { position:relative; top:.15rem; flex:none; accent-color:var(--gold); }
-  .name { flex:1; min-width:0; margin:0; font-weight:400; }
-  .name .t { font-weight:700; }
-  .off .name { color:#7f776b; } .off .name .t { font-weight:400; text-decoration:line-through; }
-  .preview { display:block; font-size:.85rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .words { font-size:.85rem; color:var(--muted); white-space:nowrap; }
-  .sections details { margin:.25rem 0 0 1.7rem; font-size:.9rem; }
-  .sections summary { cursor:pointer; color:var(--muted); } .sections summary:hover { color:var(--gold); }
-  textarea { width:100%; font:15px/1.5 system-ui, sans-serif; min-height:14rem; margin-top:.4rem; padding:.5rem .6rem;
-             color:var(--fg); background:#15171b; border:1px solid var(--rule); border-radius:3px; }
-  .voices .row { align-items:center; } .voices .row > input { top:0; }
-  .voices audio { height:2rem; width:10rem; flex:none; }
+    h1 {
+      font-weight: 800;
+      font-size: 2.1rem;
+      line-height: 1.15;
+      margin: 1.8rem 0 .6rem;
+      text-shadow: 0 2px 0 #000;
+    }
 
-  .waves { display:block; width:120px; height:40px; color:var(--brick); margin:.3rem 0; }
-  .faq dt { font-weight:700; margin-top:1rem; } .faq dd { margin:.2rem 0 0; color:#bdb4a5; }
-  progress { -webkit-appearance:none; appearance:none; width:100%; height:.7rem; border:0; border-radius:3px; background:var(--rule); overflow:hidden; }
-  progress::-webkit-progress-bar { background:var(--rule); }
-  progress::-webkit-progress-value { background:var(--brick); }
-  progress::-moz-progress-bar { background:var(--brick); }
-  @media (max-width:30rem) { h1 { font-size:1.75rem; } .spines { height:120px; } .voices audio { width:7.5rem; } }
-</style>
+    h2 {
+      font-weight: 800;
+      font-size: 1.15rem;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--gold);
+      margin: 2.4rem 0 .7rem;
+      padding-bottom: .3rem;
+      border-bottom: 2px solid var(--rule);
+    }
+
+    p {
+      margin: .6rem 0;
+    }
+
+    a {
+      color: var(--fg);
+      text-decoration: underline;
+      text-decoration-color: #6b6357;
+      text-underline-offset: .2em;
+    }
+
+    a:hover {
+      text-decoration-color: var(--gold);
+    }
+
+    .lede {
+      color: #bdb4a5;
+      font-size: 1.05rem;
+    }
+
+    .small {
+      font-size: .88rem;
+      color: var(--muted);
+    }
+
+    .error {
+      color: var(--bad);
+      font-weight: 600;
+    }
+
+    /* slate header and footer bars */
+    .top {
+      background: var(--slate);
+      box-shadow: 0 2px 0 var(--slate-edge);
+      padding: .9rem 0;
+    }
+
+    .top .wrap,
+    footer .wrap {
+      max-width: 56rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: .4rem 1.2rem;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      font: 800 1.3rem/1 var(--head);
+      letter-spacing: .02em;
+      text-transform: uppercase;
+      text-decoration: none;
+      color: var(--fg);
+    }
+
+    .brand b {
+      color: var(--gold);
+    }
+
+    .brand svg {
+      width: 26px;
+      height: 26px;
+    }
+
+    .nav {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: .3rem 1rem;
+      margin: 0;
+      font: 700 .78rem var(--head);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+
+    .nav a {
+      text-decoration: none;
+    }
+
+    .nav a:hover {
+      color: var(--gold);
+    }
+
+    .nav .who {
+      color: #c4ccd4;
+      text-transform: none;
+      letter-spacing: 0;
+      font-weight: 400;
+      font-size: .85rem;
+    }
+
+    footer {
+      background: var(--slate);
+      color: #aeb6bf;
+      font-size: .85rem;
+      padding: 1.1rem 0;
+      margin-top: 2rem;
+    }
+
+    /* landing hero: the shelf */
+    .hero {
+      width: 100%;
+      background: linear-gradient(#2b2520, var(--bg));
+      padding-bottom: 2.2rem;
+      border-bottom: 1px solid #333;
+    }
+
+    .hero h1,
+    .hero .lede {
+      text-align: center;
+    }
+
+    .spines {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 3px;
+      height: 150px;
+      padding-top: 12px;
+      overflow: hidden;
+      border-bottom: 6px solid #5a4330;
+    }
+
+    .spines i {
+      display: block;
+      flex: none;
+      border-radius: 2px 2px 0 0;
+      box-shadow: inset -4px 0 0 rgba(0, 0, 0, .18), inset 0 12px 0 rgba(255, 255, 255, .06);
+    }
+
+    /* cream cards hold the forms */
+    .box {
+      background: var(--cream);
+      color: var(--cream-ink);
+      border-radius: 4px;
+      padding: 1.2rem 1.3rem;
+      margin: 1.3rem 0;
+      box-shadow: 0 6px 0 #0e1013;
+    }
+
+    .box a {
+      color: var(--cream-ink);
+      text-decoration-color: #a3967f;
+    }
+
+    .box .small {
+      color: #6d6253;
+    }
+
+    .box .error {
+      color: #a12a1a;
+    }
+
+    label {
+      display: block;
+      font-weight: 700;
+      margin: .1rem 0 .45rem;
+    }
+
+    label .small {
+      font-weight: 400;
+      margin-left: .3rem;
+    }
+
+    input[type=email],
+    input[type=file] {
+      width: 100%;
+      font: inherit;
+      color: var(--cream-ink);
+      background: #fff;
+      border: 1px solid var(--cream-edge);
+      border-radius: 3px;
+      padding: .45rem .6rem;
+    }
+
+    input[type=file] {
+      padding: .35rem;
+    }
+
+    input:focus-visible,
+    textarea:focus-visible,
+    button:focus-visible,
+    a:focus-visible {
+      outline: 2px solid var(--gold);
+      outline-offset: 2px;
+    }
+
+    .box :focus-visible {
+      outline-color: var(--brick);
+    }
+
+    input[type=checkbox],
+    input[type=radio] {
+      accent-color: var(--brick);
+      width: 1rem;
+      height: 1rem;
+    }
+
+    .check {
+      display: flex;
+      gap: .6rem;
+      align-items: flex-start;
+      font-weight: 400;
+      margin: .8rem 0;
+    }
+
+    .check input {
+      margin-top: .3rem;
+      flex: none;
+    }
+
+    /* buttons: brick red for the one thing to do; cream-grey for everything else */
+    button,
+    .button {
+      display: inline-block;
+      font: inherit;
+      font-size: 1rem;
+      font-weight: 700;
+      line-height: 1.2;
+      cursor: pointer;
+      text-decoration: none;
+      color: #fff8ee;
+      background: var(--brick);
+      border: 0;
+      border-bottom: 3px solid var(--brick-dark);
+      border-radius: 4px;
+      padding: .6rem 1.4rem;
+    }
+
+    button:hover,
+    .button:hover {
+      background: #ad4432;
+    }
+
+    button:active,
+    .button:active {
+      border-bottom-width: 1px;
+      margin-top: 2px;
+    }
+
+    .secondary,
+    input[type=file]::file-selector-button {
+      font: inherit;
+      font-weight: 500;
+      color: var(--cream-ink);
+      background: var(--cream-dark);
+      border: 1px solid #b9ad98;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    .secondary {
+      padding: .55rem 1.2rem;
+    }
+
+    .secondary:hover {
+      background: #d8cfbd;
+    }
+
+    input[type=file]::file-selector-button {
+      margin-right: .7rem;
+      padding: .3rem .8rem;
+    }
+
+    .box hr {
+      border: 0;
+      border-top: 1px solid var(--cream-edge);
+    }
+
+    .actions {
+      margin-top: 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: .6rem 1rem;
+      align-items: center;
+    }
+
+    button.link {
+      background: none;
+      border: 0;
+      padding: 0;
+      margin: 0;
+      color: inherit;
+      font: inherit;
+      text-decoration: underline;
+      text-underline-offset: .2em;
+      cursor: pointer;
+    }
+
+    button.link:hover {
+      background: none;
+      color: var(--gold);
+    }
+
+    .buy {
+      font-size: .85rem;
+      padding: .3rem .9rem;
+      border-bottom-width: 2px;
+    }
+
+    /* tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-variant-numeric: tabular-nums;
+    }
+
+    th,
+    td {
+      text-align: left;
+      vertical-align: top;
+      padding: .55rem .5rem;
+      border-bottom: 1px solid var(--line);
+    }
+
+    th {
+      font: 700 .75rem var(--head);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: #9c9384;
+      border-bottom: 2px solid var(--rule);
+    }
+
+    td.num,
+    th.num {
+      text-align: right;
+    }
+
+    tr.free td {
+      color: #9c9384;
+    }
+
+    tr.best td {
+      color: var(--gold);
+      font-weight: 700;
+    }
+
+    /* step 2 */
+    .steps {
+      font: 700 .75rem var(--head);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: #7f776b;
+      margin: 1.4rem 0 0;
+    }
+
+    .steps b {
+      color: var(--gold);
+    }
+
+    .total {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: var(--bg);
+      padding: .6rem 0;
+      border-bottom: 2px solid var(--rule);
+      font-weight: 700;
+      color: var(--gold);
+    }
+
+    .sections,
+    .voices,
+    .books {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 1rem;
+    }
+
+    .sections li,
+    .voices li,
+    .books li {
+      border-bottom: 1px solid var(--line);
+      padding: .6rem 0;
+    }
+
+    .row {
+      display: flex;
+      gap: .7rem;
+      align-items: baseline;
+    }
+
+    .row>input {
+      position: relative;
+      top: .15rem;
+      flex: none;
+      accent-color: var(--gold);
+    }
+
+    .name {
+      flex: 1;
+      min-width: 0;
+      margin: 0;
+      font-weight: 400;
+    }
+
+    .name .t {
+      font-weight: 700;
+    }
+
+    .off .name {
+      color: #7f776b;
+    }
+
+    .off .name .t {
+      font-weight: 400;
+      text-decoration: line-through;
+    }
+
+    .preview {
+      display: block;
+      font-size: .85rem;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .words {
+      font-size: .85rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .sections details {
+      margin: .25rem 0 0 1.7rem;
+      font-size: .9rem;
+    }
+
+    .sections summary {
+      cursor: pointer;
+      color: var(--muted);
+    }
+
+    .sections summary:hover {
+      color: var(--gold);
+    }
+
+    textarea {
+      width: 100%;
+      font: 15px/1.5 system-ui, sans-serif;
+      min-height: 14rem;
+      margin-top: .4rem;
+      padding: .5rem .6rem;
+      color: var(--fg);
+      background: #15171b;
+      border: 1px solid var(--rule);
+      border-radius: 3px;
+    }
+
+    .voices .row {
+      align-items: center;
+    }
+
+    .voices .row>input {
+      top: 0;
+    }
+
+    .voices audio {
+      height: 2rem;
+      width: 10rem;
+      flex: none;
+    }
+
+    .waves {
+      display: block;
+      width: 120px;
+      height: 40px;
+      color: var(--brick);
+      margin: .3rem 0;
+    }
+
+    .faq dt {
+      font-weight: 700;
+      margin-top: 1rem;
+    }
+
+    .faq dd {
+      margin: .2rem 0 0;
+      color: #bdb4a5;
+    }
+
+    progress {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: .7rem;
+      border: 0;
+      border-radius: 3px;
+      background: var(--rule);
+      overflow: hidden;
+    }
+
+    progress::-webkit-progress-bar {
+      background: var(--rule);
+    }
+
+    progress::-webkit-progress-value {
+      background: var(--brick);
+    }
+
+    progress::-moz-progress-bar {
+      background: var(--brick);
+    }
+
+    @media (max-width:30rem) {
+      h1 {
+        font-size: 1.75rem;
+      }
+
+      .spines {
+        height: 120px;
+      }
+
+      .voices audio {
+        width: 7.5rem;
+      }
+    }
+  </style>
 </head>
 <body>
-<header class="top"><div class="wrap">
-  <a class="brand" href="/"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M8 16c8-3 16-3 24 2 8-5 16-5 24-2v32c-8-3-16-3-24 2-8-5-16-5-24-2z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/><path d="M32 18v32" stroke="currentColor" stroke-width="4"/></svg><span>narrator<b>.guru</b></span></a>
-  {% if user %}
-  <form method="post" action="/signout" class="nav"><span class="who">{{ user.email }} · {{ balance }} book{{ 's' if balance != 1 }} left</span><button class="link">Sign out</button></form>
-  {% else %}
-  <nav class="nav"><a href="/#prices">Prices</a><a href="/#sample">Sample</a><a href="/#questions">Questions</a><a href="/signin">Sign in</a></nav>
-  {% endif %}
-</div></header>
-{% block hero %}{% endblock %}
-<main class="wrap">
-{% block body %}{% endblock %}
-</main>
-<footer><div class="wrap"><span>narrator.guru · DRM-free EPUB and PDF to M4B audiobooks · no subscription</span>
-<span>Support: <a href="mailto:{{ contact }}">{{ contact }}</a> · <a href="/terms">Terms</a> · <a href="/privacy">Privacy</a> · <a href="/refunds">Refunds</a></span></div></footer>
+  <header class="top">
+    <div class="wrap">
+      <a class="brand" href="/"><svg viewBox="0 0 64 64" aria-hidden="true">
+          <path d="M8 16c8-3 16-3 24 2 8-5 16-5 24-2v32c-8-3-16-3-24 2-8-5-16-5-24-2z" fill="none" stroke="currentColor"
+            stroke-width="4" stroke-linejoin="round" />
+          <path d="M32 18v32" stroke="currentColor" stroke-width="4" />
+        </svg><span>narrator<b>.guru</b></span></a>
+      {% if user %}
+      <form method="post" action="/signout" class="nav"><span class="who">{{ user.email }} · {{ balance }} book{{ 's' if
+          balance != 1 }} left</span><button class="link">Sign out</button></form>
+      {% else %}
+      <nav class="nav"><a href="/#prices">Prices</a><a href="/#sample">Sample</a><a href="/#questions">Questions</a><a
+          href="/signin">Sign in</a></nav>
+      {% endif %}
+    </div>
+  </header>
+  {% block hero %}{% endblock %}
+  <main class="wrap">
+    {% block body %}{% endblock %}
+  </main>
+  <footer>
+    <div class="wrap"><span>narrator.guru · DRM-free EPUB and PDF to M4B audiobooks · no subscription</span>
+      {# email_off: Cloudflare's Scrape Shield otherwise hides the support address behind JavaScript, and Creem's review
+      requires it in the page. #}
+      <span>Support: <!--email_off--><a href="mailto:{{ contact }}">{{ contact }}</a><!--/email_off--> · <a
+          href="/terms">Terms</a> · <a href="/privacy">Privacy</a> · <a href="/refunds">Refunds</a></span>
+    </div>
+  </footer>
 </body>
 </html>

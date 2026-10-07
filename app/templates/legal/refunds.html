@@ -1,14 +1,21 @@
 {% extends "base.html" %}
 {% block title %}Refunds · narrator.guru{% endblock %}
-{% block description %}narrator.guru refunds: failed conversions refunded automatically, unused packs within 14 days, broken audiobooks redone or refunded.{% endblock %}
+{% block description %}narrator.guru refunds: failed conversions refunded automatically, unused packs within 14 days,
+broken audiobooks redone or refunded.{% endblock %}
 {% block body %}
 <h1>Refunds</h1>
 <p class="small">Last updated {{ updated }}. {{ draft_note }}</p>
 <ul>
-  <li><strong>Failed conversions</strong> give their book back to your account automatically. You don't need to ask.</li>
-  <li><strong>Unused books:</strong> if you haven't used any book from a pack, you can get a full refund within 14 days of buying it.</li>
-  <li><strong>Broken audiobooks:</strong> if an audiobook is clearly broken (silence, garbled audio, chapters missing that you selected), write to us within 14 days and we'll redo it or refund that book.</li>
-  <li>Once a book from a pack has been converted to your satisfaction, it can't be refunded: you asked us to start the conversion straight away, and it's a digital service that has then been fully provided.</li>
+  <li><strong>Failed conversions</strong> give their book back to your account automatically. You don't need to ask.
+  </li>
+  <li><strong>Unused books:</strong> if you haven't used any book from a pack, you can get a full refund within 14 days
+    of buying it.</li>
+  <li><strong>Broken audiobooks:</strong> if an audiobook is clearly broken (silence, garbled audio, chapters missing
+    that you selected), write to us within 14 days and we'll redo it or refund that book.</li>
+  <li>Once a book from a pack has been converted to your satisfaction, it can't be refunded: you asked us to start the
+    conversion straight away, and it's a digital service that has then been fully provided.</li>
 </ul>
-<p>To ask for a refund, write to <a href="mailto:{{ contact }}">{{ contact }}</a> from the email address on your account. Refunds are paid by Creem, our payment provider, to the card you paid with, usually within 5–10 days.</p>
+<p>To ask for a refund, write to <!--email_off--><a href="mailto:{{ contact }}">{{ contact }}</a><!--/email_off--> from
+  the email address on your account. Refunds are paid by Creem, our payment provider, to the card you paid with, usually
+  within 5–10 days.</p>
 {% endblock %}
