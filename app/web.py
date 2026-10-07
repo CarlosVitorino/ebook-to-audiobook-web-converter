@@ -79,7 +79,9 @@ def structured_data() -> dict:
              "logo": f"{BASE_URL}/static/icon-512.png"},
             {"@type": "Product", "name": "narrator.guru ebook to audiobook conversion",
              "description": DESCRIPTION, "image": f"{BASE_URL}/static/og.png",
-             "brand": {"@id": f"{BASE_URL}/#org"},
+             # Inlined, not an @id reference to the Organization above: Search Console reports
+             # "Invalid object type for field 'brand'" because it doesn't resolve the reference.
+             "brand": {"@type": "Brand", "name": "narrator.guru"},
              "offers": [{"@type": "Offer", "name": "First book", "price": "0", "priceCurrency": "EUR",
                          "availability": "https://schema.org/InStock", "url": f"{BASE_URL}/"}] + [
                 {"@type": "Offer", "name": p["name"], "price": p["amount"], "priceCurrency": "EUR",
