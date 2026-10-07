@@ -50,6 +50,12 @@ def faq() -> list[tuple[str, str]]:
          f"Your first book is free. After that: {one['name']} {one['price']}, {five['name']} {five['price']} ({five['per_book']} each), "
          f"{fifteen['name']} {fifteen['price']} ({fifteen['per_book']} each). No subscription, and books in your account don't expire. "
          "One book covers up to about 10 hours of audio."),
+        ("Why is narrator.guru so cheap?",
+         "Because we only charge what it costs to run. narrator.guru is here to help people listen to the books they own, "
+         "not to make money from them. The voices come from Kokoro, an open AI voice model that runs on our own server, "
+         "so we don't pay an AI company for every word. What you pay covers that server and the payment fees. "
+         f"That's why a whole audiobook costs from {fifteen['per_book']} instead of a monthly subscription "
+         "or the $1,200 or more a human narrator charges."),
         ("Can I skip the copyright page and the acknowledgements?",
          "Yes. Before converting you see every section of the book and untick what you don't want to hear."),
         ("Can I choose the voice?",
