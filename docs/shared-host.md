@@ -106,11 +106,11 @@ services:
         aliases: [narrator-web]
 
   worker:
-    cpus: 6
+    cpus: 5                      # was 6 until Weather Evidence joined (§3.6)
     cpu_shares: 256
     mem_limit: 3g
     environment:
-      ONNX_THREADS: 6
+      ONNX_THREADS: 5
 
 networks:
   edge:
@@ -194,8 +194,9 @@ The host budget, all limits summed:
 |---|---|
 | BuildCase postgres · web · worker | 2 + 1 + 4 GB |
 | narrator web · worker | 0.5 + 3 GB |
+| Weather Evidence web | 0.75 GB |
 | Caddy | ~50 MB |
-| **Total capped** | **~10.5 of 16 GB** |
+| **Total capped** | **~11.3 of 16 GB** |
 
 That leaves ~5.5 GB for the kernel and page cache. It is enough, but it is no longer generous
 the way 32 GB was, and the caps are now the thing keeping the machine honest rather than a
@@ -214,6 +215,18 @@ GB. Against ~30 GB of OS, Docker images, Postgres and Chromium, 160 GB still has
 is 96 GB less room than the netcup fallback, and this is the resource that runs out quietly.
 **This project and Postgres share one filesystem**: a disk filled here takes the lab down with
 it. Alerting on disk is worth more than alerting on CPU.
+
+### 3.6 A third tenant: Weather Evidence (2026-10-16)
+
+weatherevidence.com (`historical-weather-reports-for-insurance-claims/deploy/compose.yml`) joins the host as one
+container, `weatherevidence-web` on `edge`. It is a single Python process that builds a PDF per paid order:
+measured at 9.8 s of one core and a 364 MB peak per report, ~45 s wall clock because most of it waits on NOAA.
+
+Its core comes from this project, not from Hunting Apps: **`cpus` and `ONNX_THREADS` go from 6 to 5**, so the lab
+keeps its 2 guaranteed cores and Weather Evidence gets 1 (`cpus: 1`). Expect narration to lose at most a sixth of
+its speed, and probably less, since Kokoro's intra-op scaling flattens before 6 threads; re-measure
+`NARRATION_SPEED` (§8) rather than assume either. Memory is not taken from here: Weather Evidence is capped at
+768 MB, which moves the host's capped total from ~10.5 to ~11.3 of 16 GB.
 
 ## 4. The edge Caddyfile
 

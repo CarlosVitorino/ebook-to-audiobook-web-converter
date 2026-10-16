@@ -13,11 +13,11 @@ services:
         aliases: [narrator-web]
 
   worker:
-    cpus: 6                      # of 8, leaving 2 for the other tenant on this host
+    cpus: 5                      # of 8: 2 for Hunting Apps, 1 for Weather Evidence (docs/shared-host.md §3.6)
     cpu_shares: 256              # a weight, not a reservation: it only bites under contention
     mem_limit: 3g
     environment:
-      ONNX_THREADS: 6            # match cpus, or ORT sizes its pool from the host's 8 and gets throttled
+      ONNX_THREADS: 5            # match cpus, or ORT sizes its pool from the host's 8 and gets throttled
 
 networks:
   edge:
