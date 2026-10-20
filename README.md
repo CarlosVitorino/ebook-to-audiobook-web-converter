@@ -6,7 +6,7 @@ Upload an EPUB or PDF, get back a narrated audiobook with captions The result ma
 - **Start here.** A simple web form where a user uploads an EPUB or PDF and receives back a finished whole-book M4B file with synced captions, built on the existing open-source engine, with a first-conversion-free pricing message. If people will pay for a second book after their first free conversion, the thesis holds.
 - **Stop if.** copywrite issues. We need a monetizing strategy. Like 1 free, next you need to buy like a pack, something like that.
 
-This repository was handed off from Venture Lab. Open it in Cursor, Claude Code, Replit, Bolt or any coding tool and ask it to start.
+This repository was handed off from Hunting Apps. Open it in Cursor, Claude Code, Replit, Bolt or any coding tool and ask it to start.
 
 - `build-brief.md` — the full brief
 - `AGENTS.md` — how to work on it

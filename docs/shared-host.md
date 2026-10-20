@@ -2,7 +2,7 @@
 
 narrator.guru and BuildCase move onto a single VPS and share one Caddy. This file is the plan
 for that move as it concerns *this* repo. BuildCase keeps the mirror of it at
-`venture-lab/docs/18-the-shared-host.md`; the two must agree, because they are describing one
+`huntingApps/docs/18-the-shared-host.md`; the two must agree, because they are describing one
 machine.
 
 `docs/deploy.md` still describes the single-product server, and most of it stays true — domain,
